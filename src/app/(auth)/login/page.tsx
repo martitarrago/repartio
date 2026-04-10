@@ -140,6 +140,14 @@ export default function LoginPage() {
               {isSubmitting ? "Entrando..." : "Entrar"}
             </Button>
 
+            {/* Hint modo demo */}
+            <div className="w-full rounded-md border border-dashed border-amber-300 bg-amber-50 px-3 py-2 text-center">
+              <p className="text-xs font-medium text-amber-800">Acceso demo</p>
+              <p className="text-xs text-amber-700 font-mono mt-0.5">
+                demo@repartio.es · demo1234
+              </p>
+            </div>
+
             <p className="text-center text-xs text-muted-foreground">
               ¿No tienes cuenta?{" "}
               <Link href="/register" className="text-primary hover:underline">

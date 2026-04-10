@@ -7,9 +7,11 @@ const RUTAS_PUBLICAS = ["/login", "/register", "/forgot-password"];
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Verificar si hay sesión (cookie de sesión — adaptar a NextAuth/Clerk)
-  const token = request.cookies.get("next-auth.session-token")?.value
-    ?? request.cookies.get("__Secure-next-auth.session-token")?.value;
+  // Cookie de sesión: demo o NextAuth
+  const token =
+    request.cookies.get("repartio-session")?.value ??
+    request.cookies.get("next-auth.session-token")?.value ??
+    request.cookies.get("__Secure-next-auth.session-token")?.value;
 
   const esRutaPublica = RUTAS_PUBLICAS.some((ruta) =>
     pathname.startsWith(ruta)
