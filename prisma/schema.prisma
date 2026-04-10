@@ -1,0 +1,227 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// MULTI-TENANT: ORGANIZACION + USUARIO
+// ─────────────────────────────────────────────
+
+model Organizacion {
+  id          String   @id @default(cuid())
+  nombre      String
+  cif         String?  @unique
+  email       String?
+  telefono    String?
+  direccion   String?
+  logoUrl     String?
+  activa      Boolean  @default(true)
+  creadaEn    DateTime @default(now())
+  actualizadaEn DateTime @updatedAt
+
+  usuarios      Usuario[]
+  instalaciones Instalacion[]
+
+  @@map("organizaciones")
+}
+
+enum RolUsuario {
+  SUPERADMIN
+  ADMIN
+  GESTOR
+  LECTOR
+}
+
+model Usuario {
+  id             String      @id @default(cuid())
+  email          String      @unique
+  nombre         String
+  apellidos      String?
+  passwordHash   String?
+  rol            RolUsuario  @default(GESTOR)
+  activo         Boolean     @default(true)
+  organizacionId String
+  creadoEn       DateTime    @default(now())
+  actualizadoEn  DateTime    @updatedAt
+  ultimoAcceso   DateTime?
+
+  organizacion   Organizacion @relation(fields: [organizacionId], references: [id], onDelete: Cascade)
+  conjuntos      ConjuntoCoeficientes[]
+  historial      HistorialFichero[]
+
+  @@map("usuarios")
+}
+
+// ─────────────────────────────────────────────
+// INSTALACION (Comunidad de Autoconsumo)
+// ─────────────────────────────────────────────
+
+enum ModalidadAutoconsumo {
+  INDIVIDUAL_SIN_EXCEDENTES
+  INDIVIDUAL_CON_EXCEDENTES
+  COLECTIVO_SIN_EXCEDENTES
+  COLECTIVO_CON_EXCEDENTES
+  SERVICIOS_AUXILIARES
+}
+
+enum TipoRed {
+  INTERIOR
+  EXTERIOR_RED_DISTRIBUCION
+  EXTERIOR_RED_TRANSPORTE
+}
+
+enum TecnologiaGeneracion {
+  FOTOVOLTAICA
+  EOLICA
+  HIDRAULICA
+  COGENERACION
+  BIOMASA
+  OTRAS
+}
+
+enum EstadoInstalacion {
+  BORRADOR
+  ACTIVA
+  SUSPENDIDA
+  BAJA
+}
+
+model Instalacion {
+  id               String              @id @default(cuid())
+  nombre           String
+  descripcion      String?
+  cau              String              // Código de Autoconsumo Unificado
+  anio             Int
+  modalidad        ModalidadAutoconsumo @default(COLECTIVO_CON_EXCEDENTES)
+  tipoRed          TipoRed             @default(EXTERIOR_RED_DISTRIBUCION)
+  tecnologia       TecnologiaGeneracion @default(FOTOVOLTAICA)
+  potenciaKw       Decimal?            @db.Decimal(10, 3)
+  estado           EstadoInstalacion   @default(BORRADOR)
+  municipio        String?
+  provincia        String?
+  codigoPostal     String?             @db.Char(5)
+  organizacionId   String
+  creadaEn         DateTime            @default(now())
+  actualizadaEn    DateTime            @updatedAt
+
+  organizacion     Organizacion         @relation(fields: [organizacionId], references: [id], onDelete: Cascade)
+  participantes    Participante[]
+  conjuntos        ConjuntoCoeficientes[]
+
+  @@unique([cau, anio, organizacionId])
+  @@map("instalaciones")
+}
+
+// ─────────────────────────────────────────────
+// PARTICIPANTE (consumidor con CUPS)
+// ─────────────────────────────────────────────
+
+model Participante {
+  id             String   @id @default(cuid())
+  cups           String   @db.Char(22)  // CUPS según formato REE
+  nombre         String
+  descripcion    String?  // ej: "Piso 1A", "Local Bajo"
+  instalacionId  String
+  orden          Int      @default(0)   // orden visual en tablas
+  activo         Boolean  @default(true)
+  creadoEn       DateTime @default(now())
+  actualizadoEn  DateTime @updatedAt
+
+  instalacion    Instalacion           @relation(fields: [instalacionId], references: [id], onDelete: Cascade)
+  entradas       EntradaCoeficiente[]
+
+  @@unique([cups, instalacionId])
+  @@index([instalacionId, orden])
+  @@map("participantes")
+}
+
+// ─────────────────────────────────────────────
+// CONJUNTO DE COEFICIENTES (versión del reparto)
+// ─────────────────────────────────────────────
+
+enum ModoCoeficiente {
+  CONSTANTE
+  VARIABLE
+}
+
+enum EstadoConjunto {
+  BORRADOR
+  VALIDADO
+  PUBLICADO
+  ARCHIVADO
+}
+
+model ConjuntoCoeficientes {
+  id             String          @id @default(cuid())
+  nombre         String          @default("Reparto principal")
+  descripcion    String?
+  modo           ModoCoeficiente @default(CONSTANTE)
+  estado         EstadoConjunto  @default(BORRADOR)
+  instalacionId  String
+  creadoPorId    String?
+  snapshotJson   Json?           // snapshot completo para auditoría
+  sumaValidada   Boolean         @default(false)
+  version        Int             @default(1)
+  creadoEn       DateTime        @default(now())
+  actualizadoEn  DateTime        @updatedAt
+
+  instalacion    Instalacion          @relation(fields: [instalacionId], references: [id], onDelete: Cascade)
+  creadoPor      Usuario?             @relation(fields: [creadoPorId], references: [id])
+  entradas       EntradaCoeficiente[]
+  historial      HistorialFichero[]
+
+  @@map("conjuntos_coeficientes")
+}
+
+// ─────────────────────────────────────────────
+// ENTRADA DE COEFICIENTE (valor β por CUPS / hora)
+// ─────────────────────────────────────────────
+
+model EntradaCoeficiente {
+  id              String   @id @default(cuid())
+  conjuntoId      String
+  participanteId  String
+  hora            Int?     // null = modo CONSTANTE; 0-23 = modo VARIABLE (hora del tipo de día)
+  tipoDia         String?  // "LABORABLE" | "SABADO" | "FESTIVO" (solo modo VARIABLE)
+  valor           Decimal  @db.Decimal(7, 6) // 0.000000 – 1.000000
+  creadaEn        DateTime @default(now())
+  actualizadaEn   DateTime @updatedAt
+
+  conjunto        ConjuntoCoeficientes @relation(fields: [conjuntoId], references: [id], onDelete: Cascade)
+  participante    Participante         @relation(fields: [participanteId], references: [id], onDelete: Cascade)
+
+  @@unique([conjuntoId, participanteId, hora, tipoDia])
+  @@index([conjuntoId])
+  @@map("entradas_coeficiente")
+}
+
+// ─────────────────────────────────────────────
+// HISTORIAL DE FICHEROS GENERADOS
+// ─────────────────────────────────────────────
+
+model HistorialFichero {
+  id               String   @id @default(cuid())
+  conjuntoId       String
+  generadoPorId    String?
+  nombreFichero    String
+  storageUrl       String?  // URL en Vercel Blob / Supabase Storage
+  checksumSha256   String?
+  totalLineas      Int
+  totalParticipantes Int
+  modo             ModoCoeficiente
+  verificacionSuma Boolean  @default(false)
+  generadoEn       DateTime @default(now())
+
+  conjunto         ConjuntoCoeficientes @relation(fields: [conjuntoId], references: [id], onDelete: Cascade)
+  generadoPor      Usuario?             @relation(fields: [generadoPorId], references: [id])
+
+  @@index([conjuntoId, generadoEn])
+  @@map("historial_ficheros")
+}
