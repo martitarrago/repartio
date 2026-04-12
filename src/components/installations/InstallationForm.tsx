@@ -242,7 +242,7 @@ export function InstallationForm({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2 space-y-2">
             <Label htmlFor="nombre">
-              Nombre de la instalación <span className="text-destructive">*</span>
+              Nombre de la instalación <span className="text-[#DC2626]">*</span>
             </Label>
             <Input
               id="nombre"
@@ -251,7 +251,7 @@ export function InstallationForm({
               aria-invalid={!!errors.nombre}
             />
             {errors.nombre && (
-              <p className="text-xs text-destructive">{errors.nombre.message}</p>
+              <p className="text-xs text-[#DC2626]">{errors.nombre.message}</p>
             )}
           </div>
 
@@ -267,7 +267,7 @@ export function InstallationForm({
 
           <div className="space-y-2">
             <Label htmlFor="cau">
-              Código CAU <span className="text-destructive">*</span>
+              Código CAU <span className="text-[#DC2626]">*</span>
             </Label>
             <Input
               id="cau"
@@ -277,7 +277,7 @@ export function InstallationForm({
               aria-invalid={!!errors.cau}
             />
             {errors.cau ? (
-              <p className="text-xs text-destructive">{errors.cau.message}</p>
+              <p className="text-xs text-[#DC2626]">{errors.cau.message}</p>
             ) : (
               <p className="text-xs text-muted-foreground">
                 Código de Autoconsumo Unificado asignado por la distribuidora
@@ -287,7 +287,7 @@ export function InstallationForm({
 
           <div className="space-y-2">
             <Label htmlFor="anio">
-              Año <span className="text-destructive">*</span>
+              Año <span className="text-[#DC2626]">*</span>
             </Label>
             <Input
               id="anio"
@@ -298,7 +298,7 @@ export function InstallationForm({
               aria-invalid={!!errors.anio}
             />
             {errors.anio && (
-              <p className="text-xs text-destructive">{errors.anio.message}</p>
+              <p className="text-xs text-[#DC2626]">{errors.anio.message}</p>
             )}
           </div>
         </div>
@@ -317,7 +317,7 @@ export function InstallationForm({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="modalidad">
-              Modalidad <span className="text-destructive">*</span>
+              Modalidad <span className="text-[#DC2626]">*</span>
             </Label>
             <Select
               defaultValue={watch("modalidad")}
@@ -337,13 +337,13 @@ export function InstallationForm({
               </SelectContent>
             </Select>
             {errors.modalidad && (
-              <p className="text-xs text-destructive">{errors.modalidad.message}</p>
+              <p className="text-xs text-[#DC2626]">{errors.modalidad.message}</p>
             )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="tecnologia">
-              Tecnología <span className="text-destructive">*</span>
+              Tecnología <span className="text-[#DC2626]">*</span>
             </Label>
             <Select
               defaultValue={watch("tecnologia")}
@@ -376,7 +376,7 @@ export function InstallationForm({
               aria-invalid={!!errors.potenciaKw}
             />
             {errors.potenciaKw && (
-              <p className="text-xs text-destructive">{errors.potenciaKw.message}</p>
+              <p className="text-xs text-[#DC2626]">{errors.potenciaKw.message}</p>
             )}
           </div>
         </div>
@@ -417,7 +417,7 @@ export function InstallationForm({
               aria-invalid={!!errors.codigoPostal}
             />
             {errors.codigoPostal && (
-              <p className="text-xs text-destructive">{errors.codigoPostal.message}</p>
+              <p className="text-xs text-[#DC2626]">{errors.codigoPostal.message}</p>
             )}
           </div>
         </div>

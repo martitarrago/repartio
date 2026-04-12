@@ -6,7 +6,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   Tabs,
   TabsContent,
@@ -14,6 +13,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Header } from "@/components/layout/Header";
+import { Separator } from "@/components/ui/separator";
 import { InstallationForm } from "@/components/installations/InstallationForm";
 import { ParticipantesTab } from "@/components/installations/ParticipantesTab";
 import { DocumentoTab } from "@/components/installations/DocumentoTab";
@@ -173,10 +173,10 @@ async function getInstalacion(
 // ─── Badge de estado ──────────────────────────────────────────────────────────
 
 const ESTADO_BADGE = {
-  BORRADOR:   { label: "Borrador",   variant: "warning"  as const },
-  ACTIVA:     { label: "Activa",     variant: "success"  as const },
-  SUSPENDIDA: { label: "Suspendida", variant: "warning"  as const },
-  BAJA:       { label: "Baja",       variant: "error"    as const },
+  BORRADOR:   { label: "Borrador",   variant: "warning" as const },
+  ACTIVA:     { label: "Activa",     variant: "info"    as const },
+  SUSPENDIDA: { label: "Suspendida", variant: "warning" as const },
+  BAJA:       { label: "Baja",       variant: "error"   as const },
 };
 
 const MODALIDAD_LABEL: Record<string, string> = {
@@ -235,34 +235,26 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
 
   return (
     <div className="flex flex-col h-full">
-      <Header breadcrumb={instalacion.nombre} />
+      <Header title={instalacion.nombre} />
 
-      {/* Barra de info rápida */}
-      <div className="border-b border-[#E5E7EB] bg-white px-6 py-3">
+      {/* Info bar */}
+      <div className="px-8 pb-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-[#71717A]">
             <Badge variant={estadoBadge.variant}>{estadoBadge.label}</Badge>
-            <span className="text-[#9CA3AF]">
-              <span className="font-medium text-[#374151]">Modalidad:</span>{" "}
-              {MODALIDAD_LABEL[instalacion.modalidad]}
-            </span>
-            <span className="text-[#9CA3AF]">
-              <span className="font-medium text-[#374151]">Tecnología:</span>{" "}
-              {TECNOLOGIA_LABEL[instalacion.tecnologia]}
-            </span>
+            <span>{MODALIDAD_LABEL[instalacion.modalidad]}</span>
+            <span>·</span>
+            <span>{TECNOLOGIA_LABEL[instalacion.tecnologia]}</span>
             {instalacion.potenciaKw && (
-              <span className="text-[#9CA3AF]">
-                <span className="font-medium text-[#374151]">Potencia:</span>{" "}
-                {instalacion.potenciaKw} kW
-              </span>
+              <>
+                <span>·</span>
+                <span>{instalacion.potenciaKw} kW</span>
+              </>
             )}
-            <span className="text-[#9CA3AF]">
-              <span className="font-medium text-[#374151]">Participantes:</span>{" "}
-              {instalacion.totalParticipantes}
+            <span>·</span>
+            <span>
+              <span className="font-semibold text-[#18181B]">{instalacion.totalParticipantes}</span> participantes
             </span>
-            {instalacion.tieneConjuntoValidado && (
-              <span className="text-[#059669]">Reparto validado</span>
-            )}
           </div>
           <Button asChild variant="secondary" size="sm">
             <Link href="/dashboard">
@@ -276,13 +268,13 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
       {/* Tabs */}
       <div className="flex-1 overflow-y-auto">
         <Tabs defaultValue={tabActiva} className="flex flex-col h-full">
-          <div className="border-b border-[#E5E7EB] bg-white px-6 pt-1">
-            <TabsList className="h-auto gap-0 rounded-none bg-transparent p-0">
+          <div className="px-8">
+            <TabsList className="h-auto gap-0 rounded-none bg-transparent p-0 border-b border-[#F4F4F5]">
               {Object.entries(TAB_LABELS).map(([value, label]) => (
                 <TabsTrigger
                   key={value}
                   value={value}
-                  className="relative rounded-none border-b-2 border-transparent px-4 py-2.5 text-xs font-medium text-[#6B7280] transition-colors duration-150 data-[state=active]:border-[#FF2D8D] data-[state=active]:text-[#0A0A0A] data-[state=active]:shadow-none"
+                  className="relative rounded-none border-b-2 border-transparent px-4 py-2.5 text-sm font-normal text-[#A1A1AA] transition-all duration-150 data-[state=active]:border-[#18181B] data-[state=active]:text-[#18181B] data-[state=active]:font-medium data-[state=active]:shadow-none"
                 >
                   {label}
                 </TabsTrigger>
@@ -292,7 +284,7 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
 
           {/* ── Detalles ── */}
           <TabsContent value="detalles" className="mt-0 flex-1">
-            <div className="p-6">
+            <div className="px-8 py-6">
               <div className="mx-auto max-w-2xl">
                 <InstallationForm
                   instalacionId={instalacion.id}
@@ -313,7 +305,7 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
 
           {/* ── Participantes ── */}
           <TabsContent value="participantes" className="mt-0">
-            <div className="p-6">
+            <div className="px-8 py-6">
               <ParticipantesTab
                 instalacionId={instalacion.id}
                 participantesIniciales={participantes}
@@ -323,7 +315,7 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
 
           {/* ── Coeficientes ── */}
           <TabsContent value="coeficientes" className="mt-0">
-            <div className="p-6">
+            <div className="px-8 py-6">
               <CoeficientesTabPlaceholder
                 instalacionId={instalacion.id}
                 cau={instalacion.cau}
@@ -339,7 +331,7 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
 
           {/* ── Documento .txt ── */}
           <TabsContent value="documento" className="mt-0">
-            <div className="p-6">
+            <div className="px-8 py-6">
               <DocumentoTab
                 instalacionId={instalacion.id}
                 conjuntoId={conjuntoActivoId}

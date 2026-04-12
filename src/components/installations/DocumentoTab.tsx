@@ -193,7 +193,13 @@ export function DocumentoTab({
       <Separator />
 
       {/* Info de la instalación + botones */}
-      <div className="rounded-lg border bg-card p-6 space-y-5">
+      <div
+        className="rounded-lg bg-white p-6 space-y-5"
+        style={{
+          border: "1px solid rgba(0,0,0,0.06)",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)",
+        }}
+      >
         <div className="flex items-start gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
             <FileText className="h-6 w-6 text-primary" />

@@ -1,14 +1,12 @@
 import Link from "next/link";
 import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Header } from "@/components/layout/Header";
 import { InstallationCard } from "@/components/installations/InstallationCard";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import type { InstalacionResumen } from "@/types/editor";
 
-// ─── Página ───────────────────────────────────────────────────────────────────
 export default async function DashboardPage() {
   const session = await auth();
   const organizacionId = (session?.user as any)?.organizacionId as string;
@@ -49,13 +47,24 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col">
-      <Header breadcrumb="Instalaciones" />
+      <Header title="Instalaciones" />
 
-      <div className="flex-1 px-8 py-8 space-y-6">
+      <div className="flex-1 px-8 pb-8 space-y-6">
 
-        {/* Page header */}
+        {/* Title row */}
         <div className="flex items-center justify-between">
-          <h1 className="text-[20px] font-semibold text-[#0A0A0A]">Instalaciones</h1>
+          <div className="space-y-1">
+            {/* Stats as plain inline text */}
+            <p className="text-sm text-[#71717A]">
+              <span className="font-semibold text-[#18181B]">{instalaciones.length}</span> total
+              {" · "}
+              <span className="font-semibold text-[#18181B]">{activas}</span> activas
+              {" · "}
+              <span className="font-semibold text-[#18181B]">{validadas}</span> validadas
+              {" · "}
+              <span className="font-semibold text-[#18181B]">{totalParticipantes}</span> participantes
+            </p>
+          </div>
           <Button asChild>
             <Link href="/installations/new">
               <Plus className="h-3.5 w-3.5" />
@@ -64,39 +73,31 @@ export default async function DashboardPage() {
           </Button>
         </div>
 
-        {/* Stats strip — solo números */}
-        <div className="flex items-center gap-0 divide-x divide-[#E5E7EB]">
-          {[
-            { valor: instalaciones.length, label: "Total" },
-            { valor: activas,              label: "Activas" },
-            { valor: validadas,            label: "Validadas" },
-            { valor: totalParticipantes,   label: "Participantes" },
-          ].map((stat) => (
-            <div key={stat.label} className="px-6 first:pl-0 last:pr-0">
-              <p className="text-[24px] font-semibold tabular-nums text-[#0A0A0A] leading-none">
-                {stat.valor}
-              </p>
-              <p className="mt-1 text-[12px] text-[#9CA3AF]">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Toolbar */}
-        <div className="flex items-center gap-3">
-          <div className="relative max-w-xs flex-1">
-            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#9CA3AF]" />
-            <Input placeholder="Buscar instalación o CAU…" className="pl-9" />
+        {/* Search */}
+        <div className="max-w-xs">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#A1A1AA]" />
+            <input
+              placeholder="Buscar..."
+              className="flex h-8 w-full rounded-md bg-[#F4F4F5] px-3 pl-9 py-2 text-sm text-[#18181B] placeholder:text-[#A1A1AA] transition-all duration-150 focus:outline-none focus:border focus:border-[#18181B] focus:bg-white"
+            />
           </div>
         </div>
 
-        {/* Grid o empty state */}
+        {/* Grid or empty state */}
         {instalaciones.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-[#E5E7EB] bg-white py-24 text-center">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6]">
-              <Plus className="h-5 w-5 text-[#D1D5DB]" />
+          <div
+            className="flex flex-col items-center justify-center rounded-lg bg-white py-24 text-center"
+            style={{
+              border: "1px solid rgba(0,0,0,0.06)",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)",
+            }}
+          >
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#F4F4F5]">
+              <Plus className="h-5 w-5 text-[#A1A1AA]" />
             </div>
-            <p className="text-sm font-medium text-[#374151]">No tienes instalaciones</p>
-            <p className="mt-1 text-xs text-[#9CA3AF]">
+            <p className="text-sm font-medium text-[#18181B]">No tienes instalaciones</p>
+            <p className="mt-1 text-2xs text-[#A1A1AA]">
               Crea tu primera comunidad de autoconsumo colectivo.
             </p>
             <Button asChild className="mt-6">

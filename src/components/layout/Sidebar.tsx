@@ -2,52 +2,47 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import {
-  BarChart3,
   Building2,
   FileText,
-  HelpCircle,
-  LayoutDashboard,
   LogOut,
   Settings,
-  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 const navItems = [
-  { label: "Inicio",        href: "/dashboard",    icon: LayoutDashboard },
-  { label: "Instalaciones", href: "/installations", icon: Building2 },
-  { label: "Ficheros",      href: "/files",         icon: FileText,  disabled: true },
-  { label: "Estadísticas",  href: "/stats",         icon: BarChart3, disabled: true },
-];
-
-const bottomItems = [
-  { label: "Configuración", href: "/settings", icon: Settings,   disabled: true },
-  { label: "Ayuda",         href: "/help",     icon: HelpCircle, disabled: true },
+  { label: "Instalaciones", href: "/dashboard",      icon: Building2 },
+  { label: "Ficheros",      href: "/files",           icon: FileText,  disabled: true },
+  { label: "Configuración", href: "/settings",        icon: Settings,  disabled: true },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const nombre = session?.user?.name ?? "Usuario";
+  const iniciales = nombre
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   const isActive = (href: string) =>
-    href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
+    href === "/dashboard"
+      ? pathname === "/dashboard" || pathname.startsWith("/installations")
+      : pathname.startsWith(href);
 
   return (
-    <aside
-      className="flex h-screen w-[220px] shrink-0 flex-col bg-white"
-      style={{ boxShadow: "1px 0 0 #E5E7EB" }}
-    >
+    <aside className="flex h-screen w-[200px] shrink-0 flex-col bg-white">
       {/* Logo */}
-      <div className="flex h-12 items-center gap-2.5 px-4">
-        <div className="flex h-6 w-6 items-center justify-center rounded-[5px] bg-[#0A0A0A]">
-          <Zap className="h-3.5 w-3.5 text-white" />
-        </div>
-        <span className="text-sm font-semibold text-[#0A0A0A]">Repartio</span>
+      <div className="flex h-12 items-center gap-2 px-4">
+        <span className="text-base">⚡</span>
+        <span className="text-lg font-semibold text-[#18181B]">Repartio</span>
       </div>
 
-      {/* Nav principal */}
-      <nav className="flex-1 px-2 py-2 space-y-0.5">
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-2 space-y-0.5">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
@@ -56,7 +51,7 @@ export function Sidebar() {
             return (
               <div
                 key={item.href}
-                className="flex cursor-not-allowed items-center gap-2.5 rounded-md px-3 py-2 text-sm text-[#9CA3AF]"
+                className="flex cursor-not-allowed items-center gap-2.5 rounded-md px-3 py-2 text-sm text-[#A1A1AA]"
               >
                 <Icon className="h-4 w-4 shrink-0" />
                 <span>{item.label}</span>
@@ -69,10 +64,10 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors duration-150",
+                "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-all duration-150",
                 active
-                  ? "bg-[#F3F4F6] text-[#0A0A0A] font-medium"
-                  : "text-[#6B7280] hover:bg-[#F9FAFB] hover:text-[#0A0A0A]"
+                  ? "bg-[#F4F4F5] text-[#18181B] font-medium"
+                  : "text-[#71717A] hover:bg-[#FAFAFA] hover:text-[#18181B]"
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -82,26 +77,19 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Bottom nav */}
-      <div className="border-t border-[#F3F4F6] px-2 py-2 space-y-0.5">
-        {bottomItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <div
-              key={item.href}
-              className="flex cursor-not-allowed items-center gap-2.5 rounded-md px-3 py-2 text-sm text-[#9CA3AF]"
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              <span>{item.label}</span>
-            </div>
-          );
-        })}
-
+      {/* Bottom: avatar + name + logout */}
+      <div className="px-3 pb-4 space-y-2">
+        <div className="flex items-center gap-2.5 px-1">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F4F4F5] text-[11px] font-semibold text-[#71717A]">
+            {iniciales}
+          </div>
+          <span className="truncate text-sm text-[#18181B] font-medium">{nombre}</span>
+        </div>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-[#6B7280] transition-colors duration-150 hover:bg-[#F9FAFB] hover:text-[#DC2626]"
+          className="flex w-full items-center gap-2.5 rounded-md px-3 py-1.5 text-sm text-[#A1A1AA] transition-all duration-150 hover:bg-[#FAFAFA] hover:text-[#71717A]"
         >
-          <LogOut className="h-4 w-4 shrink-0" />
+          <LogOut className="h-3.5 w-3.5 shrink-0" />
           <span>Cerrar sesión</span>
         </button>
       </div>
