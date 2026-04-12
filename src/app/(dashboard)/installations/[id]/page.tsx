@@ -23,7 +23,15 @@ import { HistorialTab } from "@/components/installations/HistorialTab";
 import { EditorCoeficientesLazy } from "@/components/editor/EditorCoeficientesLazy";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import type { InstalacionResumen, Participante } from "@/types/editor";
+import type {
+  InstalacionResumen,
+  Participante,
+  EntradaConstante,
+  EntradaVariable,
+  ModoCoeficiente,
+  MatrizTipoDia,
+  TipoDia,
+} from "@/types/editor";
 import type { RegistroHistorial } from "@/components/installations/HistorialTab";
 
 // ─── Carga de datos desde Prisma ─────────────────────────────────────────────
@@ -36,6 +44,9 @@ async function getInstalacion(
   participantes: Participante[];
   historial: RegistroHistorial[];
   conjuntoActivoId: string | undefined;
+  modoInicial: ModoCoeficiente;
+  entradasConstantesIniciales: EntradaConstante[];
+  entradasVariablesIniciales: EntradaVariable[];
 } | null> {
   const inst = await prisma.instalacion.findFirst({
     where: { id, organizacionId },
@@ -66,7 +77,11 @@ async function getInstalacion(
   const conjuntoActivo = await prisma.conjuntoCoeficientes.findFirst({
     where: { instalacionId: id, estado: { not: "ARCHIVADO" } },
     orderBy: { actualizadoEn: "desc" },
-    select: { id: true },
+    include: {
+      entradas: {
+        include: { participante: { select: { cups: true, nombre: true, orden: true } } },
+      },
+    },
   });
 
   const instalacion: InstalacionResumen = {
@@ -107,7 +122,55 @@ async function getInstalacion(
     storageUrl: h.storageUrl ?? undefined,
   }));
 
-  return { instalacion, participantes, historial, conjuntoActivoId: conjuntoActivo?.id };
+  // ── Reconstruir entradas guardadas para pre-rellenar el editor ──────────────
+  let modoInicial: ModoCoeficiente = "CONSTANTE";
+  let entradasConstantesIniciales: EntradaConstante[] = [];
+  let entradasVariablesIniciales: EntradaVariable[] = [];
+
+  if (conjuntoActivo && conjuntoActivo.entradas.length > 0) {
+    modoInicial = conjuntoActivo.modo;
+
+    if (conjuntoActivo.modo === "CONSTANTE") {
+      entradasConstantesIniciales = conjuntoActivo.entradas
+        .sort((a, b) => a.participante.orden - b.participante.orden)
+        .map((e) => ({
+          participanteId: e.participanteId,
+          cups: e.participante.cups,
+          nombre: e.participante.nombre,
+          valor: Number(e.valor).toFixed(6),
+          orden: e.participante.orden,
+        }));
+    } else {
+      const porParticipante = new Map<
+        string,
+        { cups: string; nombre: string; orden: number; entradas: typeof conjuntoActivo.entradas }
+      >();
+      for (const e of conjuntoActivo.entradas) {
+        const existing = porParticipante.get(e.participanteId);
+        if (existing) existing.entradas.push(e);
+        else porParticipante.set(e.participanteId, { cups: e.participante.cups, nombre: e.participante.nombre, orden: e.participante.orden, entradas: [e] });
+      }
+      entradasVariablesIniciales = Array.from(porParticipante.entries())
+        .sort(([, a], [, b]) => a.orden - b.orden)
+        .map(([participanteId, { cups, nombre, orden, entradas }]) => {
+          const matriz: MatrizTipoDia = { LABORABLE: Array(24).fill("0"), SABADO: Array(24).fill("0"), FESTIVO: Array(24).fill("0") };
+          for (const e of entradas) {
+            if (e.tipoDia && e.hora !== null) matriz[e.tipoDia as TipoDia][e.hora] = Number(e.valor).toFixed(6);
+          }
+          return { participanteId, cups, nombre, orden, matriz };
+        });
+    }
+  }
+
+  return {
+    instalacion,
+    participantes,
+    historial,
+    conjuntoActivoId: conjuntoActivo?.id,
+    modoInicial,
+    entradasConstantesIniciales,
+    entradasVariablesIniciales,
+  };
 }
 
 // ─── Badge de estado ──────────────────────────────────────────────────────────
@@ -152,7 +215,15 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
 
   if (!datos) notFound();
 
-  const { instalacion, participantes, historial, conjuntoActivoId } = datos;
+  const {
+    instalacion,
+    participantes,
+    historial,
+    conjuntoActivoId,
+    modoInicial,
+    entradasConstantesIniciales,
+    entradasVariablesIniciales,
+  } = datos;
   const estadoBadge = ESTADO_BADGE[instalacion.estado];
   const tabActiva = tab ?? "detalles";
 
@@ -253,6 +324,9 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
                 anio={instalacion.anio}
                 participantes={participantes}
                 conjuntoId={conjuntoActivoId}
+                modoInicial={modoInicial}
+                entradasConstantesIniciales={entradasConstantesIniciales}
+                entradasVariablesIniciales={entradasVariablesIniciales}
               />
             </div>
           </TabsContent>
@@ -285,12 +359,18 @@ function CoeficientesTabPlaceholder({
   anio,
   participantes,
   conjuntoId,
+  modoInicial,
+  entradasConstantesIniciales,
+  entradasVariablesIniciales,
 }: {
   instalacionId: string;
   cau: string;
   anio: number;
   participantes: Participante[];
   conjuntoId?: string;
+  modoInicial: ModoCoeficiente;
+  entradasConstantesIniciales: EntradaConstante[];
+  entradasVariablesIniciales: EntradaVariable[];
 }) {
   if (participantes.length === 0) {
     return (
@@ -321,6 +401,9 @@ function CoeficientesTabPlaceholder({
         anio={anio}
         participantes={participantes}
         conjuntoId={conjuntoId}
+        modoInicial={modoInicial}
+        entradasConstantesIniciales={entradasConstantesIniciales}
+        entradasVariablesIniciales={entradasVariablesIniciales}
       />
     </div>
   );

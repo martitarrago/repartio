@@ -1,7 +1,12 @@
 "use client";
 
 import { EditorCoeficientes } from "./EditorCoeficientes";
-import type { Participante } from "@/types/editor";
+import type {
+  Participante,
+  EntradaConstante,
+  EntradaVariable,
+  ModoCoeficiente,
+} from "@/types/editor";
 import {
   inicializarEntradasConstantes,
   inicializarEntradasVariables,
@@ -13,11 +18,14 @@ interface EditorCoeficientesContainerProps {
   anio: number;
   participantes?: Participante[];
   conjuntoId?: string;
+  modoInicial?: ModoCoeficiente;
+  entradasConstantesIniciales?: EntradaConstante[];
+  entradasVariablesIniciales?: EntradaVariable[];
 }
 
 /**
  * Client wrapper que monta EditorCoeficientes con participantes de la instalación.
- * Recibe los datos como props desde el Server Component padre.
+ * Si hay entradas guardadas en DB, las recibe como props para pre-rellenar el editor.
  */
 export function EditorCoeficientesContainer({
   instalacionId,
@@ -25,6 +33,9 @@ export function EditorCoeficientesContainer({
   anio,
   participantes = [],
   conjuntoId,
+  modoInicial = "CONSTANTE",
+  entradasConstantesIniciales,
+  entradasVariablesIniciales,
 }: EditorCoeficientesContainerProps) {
   if (participantes.length === 0) {
     return (
@@ -41,9 +52,17 @@ export function EditorCoeficientesContainer({
       cau={cau}
       anio={anio}
       participantes={participantes}
-      entradasConstantesIniciales={inicializarEntradasConstantes(participantes)}
-      entradasVariablesIniciales={inicializarEntradasVariables(participantes)}
-      modoInicial="CONSTANTE"
+      entradasConstantesIniciales={
+        entradasConstantesIniciales?.length
+          ? entradasConstantesIniciales
+          : inicializarEntradasConstantes(participantes)
+      }
+      entradasVariablesIniciales={
+        entradasVariablesIniciales?.length
+          ? entradasVariablesIniciales
+          : inicializarEntradasVariables(participantes)
+      }
+      modoInicial={modoInicial}
     />
   );
 }
