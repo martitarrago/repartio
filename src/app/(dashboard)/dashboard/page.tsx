@@ -70,10 +70,10 @@ function StatCard({
   descripcion: string;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-6">
-      <p className="text-sm font-medium text-muted-foreground">{titulo}</p>
-      <p className="mt-2 text-3xl font-bold tabular-nums text-foreground">{valor}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{descripcion}</p>
+    <div className="rounded-lg border border-[#E5E7EB] bg-white p-6 shadow-none">
+      <p className="text-sm font-medium text-[#6B7280]">{titulo}</p>
+      <p className="mt-2 text-3xl font-bold tabular-nums text-[#1A1A1A]">{valor}</p>
+      <p className="mt-1 text-xs text-[#9CA3AF]">{descripcion}</p>
     </div>
   );
 }
@@ -144,12 +144,12 @@ export default async function DashboardPage() {
 
         {/* Grid de instalaciones */}
         {instalaciones.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-20 text-center">
-            <div className="rounded-full bg-muted p-4 mb-4">
-              <Plus className="h-8 w-8 text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-[#E5E7EB] bg-white py-20 text-center">
+            <div className="rounded-full bg-[#F9FAFB] p-4 mb-4">
+              <Plus className="h-8 w-8 text-[#D1D5DB]" />
             </div>
-            <h3 className="text-lg font-semibold">Sin instalaciones</h3>
-            <p className="mt-1 text-sm text-muted-foreground max-w-sm">
+            <h3 className="text-lg font-semibold text-[#1A1A1A]">Sin instalaciones</h3>
+            <p className="mt-1 text-sm text-[#6B7280] max-w-sm">
               Todavía no has creado ninguna instalación. Empieza creando tu
               primera comunidad de autoconsumo.
             </p>

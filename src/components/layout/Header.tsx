@@ -33,16 +33,16 @@ export function Header({
   },
 }: HeaderProps) {
   return (
-    <header className="flex h-16 items-center justify-between border-b border-border bg-background px-6">
+    <header className="flex h-16 items-center justify-between border-b border-[#E5E7EB] bg-white px-6">
       {/* Título de página */}
       <div>
         {titulo && (
-          <h1 className="text-lg font-semibold leading-none text-foreground">
+          <h1 className="text-lg font-semibold leading-none text-[#1A1A1A]">
             {titulo}
           </h1>
         )}
         {subtitulo && (
-          <p className="mt-0.5 text-sm text-muted-foreground">{subtitulo}</p>
+          <p className="mt-0.5 text-sm text-[#6B7280]">{subtitulo}</p>
         )}
       </div>
 
@@ -50,36 +50,36 @@ export function Header({
       <div className="flex items-center gap-3">
         {acciones}
 
-        <Button variant="ghost" size="icon" className="relative" disabled>
+        <Button variant="ghost" size="icon" className="relative text-[#6B7280] hover:text-[#1A1A1A]" disabled>
           <Bell className="h-4 w-4" />
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary" />
+          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#FF2D8D]" />
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="gap-2 px-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Button variant="ghost" className="gap-2 px-2 text-[#4B5563] hover:text-[#1A1A1A]">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-energy text-energy-foreground">
                 <User className="h-3.5 w-3.5" />
               </div>
               <div className="hidden text-left sm:block">
-                <p className="text-sm font-medium leading-none">{usuario.nombre}</p>
-                <p className="text-xs text-muted-foreground">{usuario.organizacion}</p>
+                <p className="text-sm font-medium leading-none text-[#1A1A1A]">{usuario.nombre}</p>
+                <p className="text-xs text-[#6B7280]">{usuario.organizacion}</p>
               </div>
-              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              <ChevronDown className="h-3.5 w-3.5 text-[#9CA3AF]" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-56 border-[#E5E7EB] bg-white shadow-sm">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">{usuario.nombre}</p>
-                <p className="text-xs text-muted-foreground">{usuario.email}</p>
+                <p className="text-sm font-medium text-[#1A1A1A]">{usuario.nombre}</p>
+                <p className="text-xs text-[#6B7280]">{usuario.email}</p>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem disabled>Perfil</DropdownMenuItem>
-            <DropdownMenuItem disabled>Organización</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuSeparator className="bg-[#E5E7EB]" />
+            <DropdownMenuItem disabled className="text-[#9CA3AF]">Perfil</DropdownMenuItem>
+            <DropdownMenuItem disabled className="text-[#9CA3AF]">Organización</DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-[#E5E7EB]" />
+            <DropdownMenuItem className="text-[#EF4444] focus:text-[#EF4444]">
               Cerrar sesión
             </DropdownMenuItem>
           </DropdownMenuContent>

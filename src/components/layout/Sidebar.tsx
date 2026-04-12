@@ -63,22 +63,22 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r border-border bg-card">
+    <aside className="flex h-screen w-64 flex-col border-r border-[#E5E7EB] bg-white">
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 border-b border-border px-6">
+      <div className="flex h-16 items-center gap-3 border-b border-[#E5E7EB] px-6">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-energy">
           <Zap className="h-4 w-4 text-energy-foreground" />
         </div>
         <div>
-          <p className="text-sm font-bold leading-none text-foreground">
+          <p className="text-sm font-bold leading-none text-[#1A1A1A]">
             Repartio
           </p>
-          <p className="text-xs text-muted-foreground">Autoconsumo colectivo</p>
+          <p className="text-xs text-[#6B7280]">Autoconsumo colectivo</p>
         </div>
       </div>
 
       {/* Navegación principal */}
-      <nav className="flex-1 space-y-1 p-3">
+      <nav className="flex-1 space-y-0.5 p-3">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
@@ -87,12 +87,12 @@ export function Sidebar() {
             return (
               <div
                 key={item.href}
-                className="flex cursor-not-allowed items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground/50"
+                className="flex cursor-not-allowed items-center gap-3 rounded-md px-3 py-2 text-sm text-[#9CA3AF]"
                 title="Próximamente"
               >
                 <Icon className="h-4 w-4" />
                 <span>{item.label}</span>
-                <span className="ml-auto text-[10px] font-medium uppercase tracking-wider text-muted-foreground/40">
+                <span className="ml-auto text-[10px] font-medium uppercase tracking-wider text-[#D1D5DB]">
                   Pronto
                 </span>
               </div>
@@ -104,13 +104,17 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                "relative flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
                 active
-                  ? "bg-primary text-primary-foreground font-medium"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  ? "bg-[#FF2D8D10] text-[#FF2D8D] font-medium"
+                  : "text-[#4B5563] hover:bg-[#F9FAFB] hover:text-[#1A1A1A]"
               )}
             >
-              <Icon className="h-4 w-4" />
+              {/* Borde izquierdo fucsia en ítem activo */}
+              {active && (
+                <span className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-[#FF2D8D]" />
+              )}
+              <Icon className="h-4 w-4 shrink-0" />
               <span>{item.label}</span>
             </Link>
           );
@@ -118,16 +122,16 @@ export function Sidebar() {
       </nav>
 
       {/* Separador */}
-      <div className="mx-3 border-t border-border" />
+      <div className="mx-3 border-t border-[#E5E7EB]" />
 
       {/* Navegación inferior */}
-      <nav className="space-y-1 p-3">
+      <nav className="space-y-0.5 p-3">
         {bottomItems.map((item) => {
           const Icon = item.icon;
           return (
             <div
               key={item.href}
-              className="flex cursor-not-allowed items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground/50"
+              className="flex cursor-not-allowed items-center gap-3 rounded-md px-3 py-2 text-sm text-[#9CA3AF]"
               title="Próximamente"
             >
               <Icon className="h-4 w-4" />
@@ -140,7 +144,7 @@ export function Sidebar() {
         <form action="/api/demo/signout" method="POST">
           <button
             type="submit"
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-destructive"
+            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-[#4B5563] transition-colors hover:bg-[#F9FAFB] hover:text-[#EF4444]"
           >
             <LogOut className="h-4 w-4" />
             <span>Cerrar sesión</span>

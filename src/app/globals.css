@@ -4,65 +4,73 @@
 
 @layer base {
   :root {
-    /* ── Neutrals ──────────────────────────────────────────────────────────── */
-    --background: 0 0% 100%;          /* #FFFFFF */
-    --foreground: 0 0% 4%;            /* #0B0B0B */
+    /* ── Fondo general ─────────────────────────────────────────────────────── */
+    --background: 210 20% 98%;        /* #F9FAFB — gris muy claro */
+    --foreground: 0 0% 10%;           /* #1A1A1A */
+
+    /* ── Cards y superficies ───────────────────────────────────────────────── */
     --card: 0 0% 100%;                /* #FFFFFF */
-    --card-foreground: 0 0% 4%;       /* #0B0B0B */
+    --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 4%;
-    --muted: 0 0% 96%;                /* #F5F5F5 */
-    --muted-foreground: 220 9% 46%;   /* medium neutral gray */
-    --border: 220 13% 85%;            /* #D1D5DB */
-    --input: 220 13% 85%;
-    --accent: 0 0% 96%;               /* #F5F5F5 */
-    --accent-foreground: 0 0% 4%;
+    --popover-foreground: 0 0% 10%;
 
-    /* ── Brand: fuchsia (primary CTAs) ────────────────────────────────────── */
-    --primary: 330 100% 59%;          /* #FF2D8D */
-    --primary-foreground: 0 0% 100%;  /* #FFFFFF */
+    /* ── Bordes ────────────────────────────────────────────────────────────── */
+    --border: 220 13% 90%;            /* #E5E7EB */
+    --input: 220 13% 90%;
 
-    /* ── Brand: energy yellow (highlights) ─────────────────────────────────── */
-    --energy: 47 91% 53%;             /* #F5C518 */
-    --energy-foreground: 0 0% 4%;     /* dark text on yellow */
-
-    /* ── Secondary ─────────────────────────────────────────────────────────── */
-    --secondary: 0 0% 94%;
+    /* ── Muted / secondary surfaces ────────────────────────────────────────── */
+    --muted: 210 20% 96%;
+    --muted-foreground: 220 9% 46%;
+    --secondary: 220 13% 94%;
     --secondary-foreground: 0 0% 10%;
+    --accent: 220 13% 94%;
+    --accent-foreground: 0 0% 10%;
 
-    /* ── Semantic ───────────────────────────────────────────────────────────── */
+    /* ── Brand: fucsia — solo CTAs (5%) ────────────────────────────────────── */
+    --primary: 330 100% 59%;          /* #FF2D8D */
+    --primary-foreground: 0 0% 100%;
+    --ring: 330 100% 59%;
+
+    /* ── Brand: amarillo energía — datos e iconos (15%) ────────────────────── */
+    --energy: 47 91% 53%;             /* #F5C518 */
+    --energy-foreground: 0 0% 10%;
+
+    /* ── Semánticos ────────────────────────────────────────────────────────── */
     --destructive: 0 84% 60%;         /* #EF4444 */
     --destructive-foreground: 0 0% 100%;
     --success: 142 71% 45%;           /* #22C55E */
     --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;            /* #F59E0B */
+    --warning-foreground: 0 0% 100%;
 
-    --ring: 330 100% 59%;             /* fuchsia focus ring */
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 0 0% 10%;           /* #1A1A1A */
+    --background: 0 0% 10%;
     --foreground: 0 0% 96%;
     --card: 0 0% 13%;
     --card-foreground: 0 0% 96%;
     --popover: 0 0% 13%;
     --popover-foreground: 0 0% 96%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
     --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 60%;
-    --border: 0 0% 22%;
-    --input: 0 0% 22%;
+    --muted-foreground: 0 0% 55%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 96%;
     --accent: 0 0% 18%;
     --accent-foreground: 0 0% 96%;
     --primary: 330 100% 65%;
     --primary-foreground: 0 0% 100%;
     --energy: 47 91% 53%;
-    --energy-foreground: 0 0% 4%;
-    --secondary: 0 0% 18%;
-    --secondary-foreground: 0 0% 96%;
+    --energy-foreground: 0 0% 10%;
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 100%;
     --success: 142 71% 40%;
     --success-foreground: 0 0% 100%;
+    --warning: 38 92% 45%;
+    --warning-foreground: 0 0% 100%;
     --ring: 330 100% 65%;
   }
 }
