@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 const esquema = z.object({
   nombre: z.string().min(3).max(100),
   descripcion: z.string().max(500).optional(),
-  cau: z.string().min(10).max(30).regex(/^[A-Z0-9]+$/i),
+  cau: z.string().length(26, "El CAU debe tener exactamente 26 caracteres").regex(/^[A-Z0-9]+$/i),
   anio: z.number().int().min(2019).max(new Date().getFullYear() + 1),
   modalidad: z.enum([
     "INDIVIDUAL_SIN_EXCEDENTES",

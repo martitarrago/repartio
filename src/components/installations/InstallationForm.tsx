@@ -27,8 +27,7 @@ const esquemaInstalacion = z.object({
   descripcion: z.string().max(500).optional(),
   cau: z
     .string()
-    .min(10, "El CAU debe tener al menos 10 caracteres")
-    .max(30, "El CAU no puede superar 30 caracteres")
+    .length(26, "El CAU debe tener exactamente 26 caracteres")
     .regex(/^[A-Z0-9]+$/i, "El CAU solo puede contener letras y números"),
   anio: z
     .number({ invalid_type_error: "Introduce un año válido" })
