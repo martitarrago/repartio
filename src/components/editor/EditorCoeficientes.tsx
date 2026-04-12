@@ -9,6 +9,7 @@ import {
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
+import { descargarFicheroTxt } from "@/lib/generators/txtGenerator";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -47,6 +48,7 @@ import {
 export function EditorCoeficientes({
   instalacionId,
   conjuntoId: conjuntoIdInicial,
+  cau,
   anio,
   participantes,
   entradasConstantesIniciales,
@@ -72,6 +74,7 @@ export function EditorCoeficientes({
   const [tieneCambiosSinGuardar, setTieneCambiosSinGuardar] = useState(false);
   const [confirmarCambioModo, setConfirmarCambioModo] = useState(false);
   const [modoSolicitado, setModoSolicitado] = useState<ModoCoeficiente | null>(null);
+  const [generando, setGenerando] = useState(false);
 
   const { guardar, guardando, error: errorGuardado } = useEditorCoeficientes();
 
@@ -130,34 +133,46 @@ export function EditorCoeficientes({
     }
   }
 
-  function handleGenerarFichero() {
-    // Necesitamos la instalación CAU — usamos el instalacionId como fallback
-    const cau = instalacionId;
-    const resultado = generarFicheroTxt({
-      modo,
-      entradasConstantes,
-      entradasVariables,
-      anio,
-      cau,
-    });
+  function handleVistaPrevia() {
+    const resultado = generarFicheroTxt({ modo, entradasConstantes, entradasVariables, anio, cau });
     setResultadoGeneracion(resultado);
-    if (resultado.exito) {
-      setMostrarPrevia(true);
-    }
+    if (resultado.exito) setMostrarPrevia(true);
   }
 
-  function handleDescargarDirecto() {
-    const cau = instalacionId;
-    const resultado = generarFicheroTxt({
-      modo,
-      entradasConstantes,
-      entradasVariables,
-      anio,
-      cau,
-    });
-    if (resultado.exito && resultado.contenido && resultado.nombreFichero) {
-      const { descargarFicheroTxt } = require("@/lib/generators/txtGenerator");
-      descargarFicheroTxt(resultado.contenido, resultado.nombreFichero);
+  async function handleGenerarYDescargar() {
+    setGenerando(true);
+    setResultadoGeneracion(null);
+    try {
+      // 1. Auto-guardar si hay cambios o no existe el conjunto
+      let idConjunto: string | undefined = conjuntoId;
+      if (!idConjunto || tieneCambiosSinGuardar) {
+        const nuevoId = await guardar({ instalacionId, conjuntoId, modo, entradasConstantes, entradasVariables });
+        if (!nuevoId) return; // guardar ya pone el error
+        idConjunto = nuevoId;
+        setConjuntoId(nuevoId);
+        setTieneCambiosSinGuardar(false);
+        onGuardado?.(nuevoId);
+      }
+
+      // 2. Generar desde DB (guarda en HistorialFichero)
+      const res = await fetch(
+        `/api/installations/${instalacionId}/coefficients/${idConjunto}/generate`,
+        { method: "POST" }
+      );
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setResultadoGeneracion({ exito: false, error: body.message ?? "Error al generar" });
+        return;
+      }
+
+      const { contenido, nombreFichero, totalLineas } = await res.json();
+
+      // 3. Descargar en el navegador
+      descargarFicheroTxt(contenido, nombreFichero);
+      setResultadoGeneracion({ exito: true, contenido, nombreFichero, totalLineas });
+    } finally {
+      setGenerando(false);
     }
   }
 
@@ -206,7 +221,7 @@ export function EditorCoeficientes({
               size="sm"
               variant="outline"
               onClick={handleGuardar}
-              disabled={guardando}
+              disabled={guardando || generando}
             >
               {guardando ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -219,10 +234,8 @@ export function EditorCoeficientes({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => {
-                handleGenerarFichero();
-              }}
-              disabled={!puedeGenerar}
+              onClick={handleVistaPrevia}
+              disabled={!puedeGenerar || guardando || generando}
             >
               <Eye className="mr-2 h-4 w-4" />
               Vista previa
@@ -230,11 +243,15 @@ export function EditorCoeficientes({
 
             <Button
               size="sm"
-              onClick={handleDescargarDirecto}
-              disabled={!puedeGenerar}
+              onClick={handleGenerarYDescargar}
+              disabled={!puedeGenerar || guardando || generando}
             >
-              <Download className="mr-2 h-4 w-4" />
-              Descargar .txt
+              {generando ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              {generando ? "Generando..." : "Descargar .txt"}
             </Button>
           </div>
         )}

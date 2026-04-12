@@ -9,6 +9,7 @@ import {
 
 interface EditorCoeficientesContainerProps {
   instalacionId: string;
+  cau: string;
   anio: number;
   participantes?: Participante[];
   conjuntoId?: string;
@@ -20,6 +21,7 @@ interface EditorCoeficientesContainerProps {
  */
 export function EditorCoeficientesContainer({
   instalacionId,
+  cau,
   anio,
   participantes = [],
   conjuntoId,
@@ -36,6 +38,7 @@ export function EditorCoeficientesContainer({
     <EditorCoeficientes
       instalacionId={instalacionId}
       conjuntoId={conjuntoId}
+      cau={cau}
       anio={anio}
       participantes={participantes}
       entradasConstantesIniciales={inicializarEntradasConstantes(participantes)}

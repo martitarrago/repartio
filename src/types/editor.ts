@@ -106,6 +106,7 @@ export interface ResultadoImportCSV {
 export interface EditorCoeficientesProps {
   instalacionId: string;
   conjuntoId?: string;
+  cau: string;
   anio: number;
   participantes: Participante[];
   entradasConstantesIniciales?: EntradaConstante[];

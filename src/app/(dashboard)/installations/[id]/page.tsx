@@ -35,6 +35,7 @@ async function getInstalacion(
   instalacion: InstalacionResumen;
   participantes: Participante[];
   historial: RegistroHistorial[];
+  conjuntoActivoId: string | undefined;
 } | null> {
   const inst = await prisma.instalacion.findFirst({
     where: { id, organizacionId },
@@ -60,6 +61,12 @@ async function getInstalacion(
     include: { generadoPor: { select: { email: true } } },
     orderBy: { generadoEn: "desc" },
     take: 50,
+  });
+
+  const conjuntoActivo = await prisma.conjuntoCoeficientes.findFirst({
+    where: { instalacionId: id, estado: { not: "ARCHIVADO" } },
+    orderBy: { actualizadoEn: "desc" },
+    select: { id: true },
   });
 
   const instalacion: InstalacionResumen = {
@@ -100,7 +107,7 @@ async function getInstalacion(
     storageUrl: h.storageUrl ?? undefined,
   }));
 
-  return { instalacion, participantes, historial };
+  return { instalacion, participantes, historial, conjuntoActivoId: conjuntoActivo?.id };
 }
 
 // ─── Badge de estado ──────────────────────────────────────────────────────────
@@ -145,7 +152,7 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
 
   if (!datos) notFound();
 
-  const { instalacion, participantes, historial } = datos;
+  const { instalacion, participantes, historial, conjuntoActivoId } = datos;
   const estadoBadge = ESTADO_BADGE[instalacion.estado];
   const tabActiva = tab ?? "detalles";
 
@@ -242,8 +249,10 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
             <div className="p-6">
               <CoeficientesTabPlaceholder
                 instalacionId={instalacion.id}
+                cau={instalacion.cau}
                 anio={instalacion.anio}
-                totalParticipantes={instalacion.totalParticipantes}
+                participantes={participantes}
+                conjuntoId={conjuntoActivoId}
               />
             </div>
           </TabsContent>
@@ -272,14 +281,18 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
 
 function CoeficientesTabPlaceholder({
   instalacionId,
+  cau,
   anio,
-  totalParticipantes,
+  participantes,
+  conjuntoId,
 }: {
   instalacionId: string;
+  cau: string;
   anio: number;
-  totalParticipantes: number;
+  participantes: Participante[];
+  conjuntoId?: string;
 }) {
-  if (totalParticipantes === 0) {
+  if (participantes.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
         <Zap className="h-10 w-10 text-muted-foreground/40 mb-3" />
@@ -297,15 +310,17 @@ function CoeficientesTabPlaceholder({
       <div>
         <h3 className="font-medium">Editor de coeficientes β</h3>
         <p className="text-sm text-muted-foreground">
-          Define el reparto de autoconsumo entre los {totalParticipantes}{" "}
+          Define el reparto de autoconsumo entre los {participantes.length}{" "}
           participantes para el año {anio}
         </p>
       </div>
       <Separator />
-      {/* Aquí se monta EditorCoeficientesContainer (Client Component) */}
       <EditorCoeficientesLazy
         instalacionId={instalacionId}
+        cau={cau}
         anio={anio}
+        participantes={participantes}
+        conjuntoId={conjuntoId}
       />
     </div>
   );
