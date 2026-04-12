@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 // Rutas que NO requieren autenticación
 const RUTAS_PUBLICAS = ["/login", "/register", "/forgot-password", "/api/"];
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Cookie de sesión: demo o NextAuth

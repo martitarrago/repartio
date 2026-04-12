@@ -137,7 +137,7 @@ export function Sidebar() {
         })}
 
         {/* Cerrar sesión */}
-        <form action="/api/auth/signout" method="POST">
+        <form action="/api/demo/signout" method="POST">
           <button
             type="submit"
             className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-destructive"
