@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import {
   BarChart3,
   Building2,
@@ -15,15 +16,15 @@ import {
 import { cn } from "@/lib/utils/cn";
 
 const navItems = [
-  { label: "Inicio",        href: "/dashboard",     icon: LayoutDashboard },
-  { label: "Instalaciones", href: "/installations",  icon: Building2 },
-  { label: "Ficheros",      href: "/files",          icon: FileText,  disabled: true },
-  { label: "Estadísticas",  href: "/stats",          icon: BarChart3, disabled: true },
+  { label: "Inicio",        href: "/dashboard",    icon: LayoutDashboard },
+  { label: "Instalaciones", href: "/installations", icon: Building2 },
+  { label: "Ficheros",      href: "/files",         icon: FileText,  disabled: true },
+  { label: "Estadísticas",  href: "/stats",         icon: BarChart3, disabled: true },
 ];
 
 const bottomItems = [
-  { label: "Configuración", href: "/settings", icon: Settings,    disabled: true },
-  { label: "Ayuda",         href: "/help",     icon: HelpCircle,  disabled: true },
+  { label: "Configuración", href: "/settings", icon: Settings,   disabled: true },
+  { label: "Ayuda",         href: "/help",     icon: HelpCircle, disabled: true },
 ];
 
 export function Sidebar() {
@@ -96,15 +97,13 @@ export function Sidebar() {
           );
         })}
 
-        <form action="/api/demo/signout" method="POST">
-          <button
-            type="submit"
-            className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-[#6B7280] transition-colors duration-150 hover:bg-[#F9FAFB] hover:text-[#DC2626]"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            <span>Cerrar sesión</span>
-          </button>
-        </form>
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-[#6B7280] transition-colors duration-150 hover:bg-[#F9FAFB] hover:text-[#DC2626]"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          <span>Cerrar sesión</span>
+        </button>
       </div>
     </aside>
   );

@@ -1,46 +1,31 @@
+import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-// Rutas que NO requieren autenticación
-const RUTAS_PUBLICAS = ["/login", "/register", "/forgot-password", "/api/"];
+export default auth((req) => {
+  const { pathname } = req.nextUrl;
+  const isLoggedIn = !!req.auth;
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const isPublic =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/register");
 
-  // Cookie de sesión: demo o NextAuth
-  const token =
-    request.cookies.get("repartio-session")?.value ??
-    request.cookies.get("next-auth.session-token")?.value ??
-    request.cookies.get("__Secure-next-auth.session-token")?.value;
-
-  const esRutaPublica = RUTAS_PUBLICAS.some((ruta) =>
-    pathname.startsWith(ruta)
-  );
-
-  // Si no hay sesión y la ruta no es pública → login
-  if (!token && !esRutaPublica) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+  if (!isLoggedIn && !isPublic) {
+    const url = new URL("/login", req.url);
+    url.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(url);
   }
 
-  // Si hay sesión y la ruta es pública → dashboard
-  if (token && esRutaPublica) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  if (isLoggedIn && (pathname.startsWith("/login") || pathname.startsWith("/register"))) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: [
-    /*
-     * Aplica a todas las rutas excepto:
-     * - _next/static
-     * - _next/image
-     * - favicon.ico
-     * - archivos estáticos con extensión
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
