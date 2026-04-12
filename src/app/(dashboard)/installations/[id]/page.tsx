@@ -2,9 +2,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
   ChevronLeft,
-  Download,
-  FileText,
-  Pencil,
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,7 +16,7 @@ import {
 import { Header } from "@/components/layout/Header";
 import { InstallationForm } from "@/components/installations/InstallationForm";
 import { ParticipantesTab } from "@/components/installations/ParticipantesTab";
-import { HistorialTab } from "@/components/installations/HistorialTab";
+import { DocumentoTab } from "@/components/installations/DocumentoTab";
 import { EditorCoeficientesLazy } from "@/components/editor/EditorCoeficientesLazy";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -199,6 +196,15 @@ const TECNOLOGIA_LABEL: Record<string, string> = {
   OTRAS: "Otras",
 };
 
+// ─── Tab labels ──────────────────────────────────────────────────────────────
+
+const TAB_LABELS: Record<string, string> = {
+  detalles: "Detalles",
+  participantes: "Participantes",
+  coeficientes: "Coeficientes",
+  documento: "Documento .txt",
+};
+
 // ─── Página ───────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -272,13 +278,13 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
         <Tabs defaultValue={tabActiva} className="flex flex-col h-full">
           <div className="border-b border-[#E5E7EB] bg-white px-6 pt-1">
             <TabsList className="h-auto gap-0 rounded-none bg-transparent p-0">
-              {["detalles", "participantes", "coeficientes", "historial", "descargas"].map((value) => (
+              {Object.entries(TAB_LABELS).map(([value, label]) => (
                 <TabsTrigger
                   key={value}
                   value={value}
-                  className="relative rounded-none border-b-2 border-transparent px-4 py-2.5 text-xs font-medium capitalize text-[#6B7280] transition-colors duration-150 data-[state=active]:border-[#FF2D8D] data-[state=active]:text-[#0A0A0A] data-[state=active]:shadow-none"
+                  className="relative rounded-none border-b-2 border-transparent px-4 py-2.5 text-xs font-medium text-[#6B7280] transition-colors duration-150 data-[state=active]:border-[#FF2D8D] data-[state=active]:text-[#0A0A0A] data-[state=active]:shadow-none"
                 >
-                  {value.charAt(0).toUpperCase() + value.slice(1)}
+                  {label}
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -331,17 +337,19 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
             </div>
           </TabsContent>
 
-          {/* ── Historial ── */}
-          <TabsContent value="historial" className="mt-0">
+          {/* ── Documento .txt ── */}
+          <TabsContent value="documento" className="mt-0">
             <div className="p-6">
-              <HistorialTab registros={historial} />
-            </div>
-          </TabsContent>
-
-          {/* ── Descargas ── */}
-          <TabsContent value="descargas" className="mt-0">
-            <div className="p-6">
-              <DescargasTab instalacion={instalacion} historial={historial} />
+              <DocumentoTab
+                instalacionId={instalacion.id}
+                conjuntoId={conjuntoActivoId}
+                nombre={instalacion.nombre}
+                cau={instalacion.cau}
+                anio={instalacion.anio}
+                totalParticipantes={instalacion.totalParticipantes}
+                historial={historial}
+                tieneConjuntoValidado={instalacion.tieneConjuntoValidado}
+              />
             </div>
           </TabsContent>
         </Tabs>
@@ -351,7 +359,6 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
 }
 
 // ─── Placeholder del editor de coeficientes ───────────────────────────────────
-// En producción, reemplazar por EditorCoeficientesContainer
 
 function CoeficientesTabPlaceholder({
   instalacionId,
@@ -405,112 +412,6 @@ function CoeficientesTabPlaceholder({
         entradasConstantesIniciales={entradasConstantesIniciales}
         entradasVariablesIniciales={entradasVariablesIniciales}
       />
-    </div>
-  );
-}
-
-// ─── Tab Descargas ────────────────────────────────────────────────────────────
-
-function DescargasTab({
-  instalacion,
-  historial,
-}: {
-  instalacion: InstalacionResumen;
-  historial: RegistroHistorial[];
-}) {
-  const ultimoFichero = historial[0];
-
-  return (
-    <div className="space-y-6 max-w-xl">
-      <div>
-        <h3 className="font-medium">Descargas</h3>
-        <p className="text-sm text-muted-foreground">
-          Descarga el fichero .txt listo para enviar a la distribuidora
-        </p>
-      </div>
-      <Separator />
-
-      {!instalacion.tieneConjuntoValidado ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          <p className="font-medium">Reparto pendiente de validación</p>
-          <p className="mt-1 text-amber-700">
-            Para descargar el fichero oficial, primero valida los coeficientes en
-            la pestaña <strong>Coeficientes</strong>.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="rounded-lg border bg-card p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                <FileText className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="font-medium">Fichero de coeficientes</p>
-                <p className="text-sm text-muted-foreground">
-                  Formato Anejo I — RD 244/2019
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <p className="text-muted-foreground">Instalación</p>
-                <p className="font-medium truncate">{instalacion.nombre}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">CAU</p>
-                <p className="font-mono text-xs">{instalacion.cau}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Año</p>
-                <p className="font-medium">{instalacion.anio}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Participantes</p>
-                <p className="font-medium">{instalacion.totalParticipantes}</p>
-              </div>
-            </div>
-
-            {ultimoFichero ? (
-              <div className="space-y-3">
-                <Separator />
-                <p className="text-xs text-muted-foreground">
-                  Último fichero generado:{" "}
-                  {new Date(ultimoFichero.generadoEn).toLocaleString("es-ES")}
-                </p>
-                {ultimoFichero.storageUrl ? (
-                  <Button asChild className="w-full">
-                    <a href={ultimoFichero.storageUrl} download={ultimoFichero.nombreFichero}>
-                      <Download className="mr-2 h-4 w-4" />
-                      Descargar fichero .txt
-                    </a>
-                  </Button>
-                ) : (
-                  <p className="text-xs text-muted-foreground text-center">
-                    Fichero no disponible en almacenamiento
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="text-center text-sm text-muted-foreground py-4">
-                <p>Aún no has generado ningún fichero.</p>
-                <p className="mt-1">
-                  Ve a la pestaña <strong>Coeficientes</strong> y pulsa "Generar fichero".
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-1">
-            <p className="font-medium text-foreground">Información del formato</p>
-            <p>Codificación: UTF-8 sin BOM</p>
-            <p>Separador: punto y coma (;)</p>
-            <p>Decimal: coma (,)</p>
-            <p>Coeficientes: 6 decimales (ej: 0,333333)</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -84,24 +84,31 @@ const TECNOLOGIAS = [
 // ─── Componente ─────────────────────────────────────────────────────────────────
 
 interface InstallationFormProps {
-  instalacionId?: string; // si se pasa → modo edición
+  instalacionId?: string; // si se pasa → modo edición (auto-save)
   valoresIniciales?: Partial<FormInstalacion>;
+  /** Callback tras crear una instalación nueva (solo modo creación) */
+  onCreated?: (id: string) => void;
 }
 
 export function InstallationForm({
   instalacionId,
   valoresIniciales,
+  onCreated,
 }: InstallationFormProps) {
   const router = useRouter();
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
+  const [estadoGuardado, setEstadoGuardado] = useState<"idle" | "guardando" | "guardado">("idle");
   const esEdicion = !!instalacionId;
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    getValues,
+    trigger,
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<FormInstalacion>({
     resolver: zodResolver(esquemaInstalacion),
     defaultValues: {
@@ -112,36 +119,110 @@ export function InstallationForm({
     },
   });
 
-  async function onSubmit(data: FormInstalacion) {
-    setErrorServidor(null);
-    try {
-      const url = esEdicion
-        ? `/api/installations/${instalacionId}`
-        : "/api/installations";
-      const method = esEdicion ? "PUT" : "POST";
+  // ─── Auto-save para modo edición ─────────────────────────────────────────
+  const doAutoSave = useCallback(async () => {
+    if (!esEdicion) return;
+    const valid = await trigger();
+    if (!valid) return;
 
-      const res = await fetch(url, {
-        method,
+    const data = getValues();
+    setErrorServidor(null);
+    setEstadoGuardado("guardando");
+
+    try {
+      const res = await fetch(`/api/installations/${instalacionId}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setErrorServidor(body.message ?? "Error al guardar la instalación");
+        setErrorServidor(body.message ?? "Error al guardar");
+        setEstadoGuardado("idle");
+        return;
+      }
+
+      setEstadoGuardado("guardado");
+      setTimeout(() => setEstadoGuardado("idle"), 2000);
+    } catch {
+      setErrorServidor("Error de conexión. Inténtalo de nuevo.");
+      setEstadoGuardado("idle");
+    }
+  }, [esEdicion, instalacionId, trigger, getValues]);
+
+  // Watch all fields for auto-save debounce in edit mode
+  const allFields = watch();
+  const prevFieldsRef = useRef(JSON.stringify(allFields));
+
+  useEffect(() => {
+    if (!esEdicion) return;
+    const currentJson = JSON.stringify(allFields);
+    if (currentJson === prevFieldsRef.current) return;
+    prevFieldsRef.current = currentJson;
+
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      doAutoSave();
+    }, 2000);
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+  }, [allFields, esEdicion, doAutoSave]);
+
+  // ─── Submit para modo creación ────────────────────────────────────────────
+  async function onSubmitCreate(data: FormInstalacion) {
+    setErrorServidor(null);
+    try {
+      const res = await fetch("/api/installations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setErrorServidor(body.message ?? "Error al crear la instalación");
         return;
       }
 
       const body = await res.json();
-      router.push(`/installations/${body.id}`);
-      router.refresh();
+      if (onCreated) {
+        onCreated(body.id);
+      } else {
+        router.push(`/installations/${body.id}`);
+        router.refresh();
+      }
     } catch {
       setErrorServidor("Error de conexión. Inténtalo de nuevo.");
     }
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+    <form
+      onSubmit={esEdicion ? (e) => e.preventDefault() : handleSubmit(onSubmitCreate)}
+      className="space-y-8"
+    >
+      {/* Estado de guardado (solo edición) */}
+      {esEdicion && (
+        <div className="flex items-center justify-end">
+          <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+            {estadoGuardado === "guardando" && (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Guardando...
+              </>
+            )}
+            {estadoGuardado === "guardado" && (
+              <>
+                <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                <span className="text-green-600">Guardado</span>
+              </>
+            )}
+          </span>
+        </div>
+      )}
+
       {errorServidor && (
         <Alert variant="destructive">
           <AlertDescription>{errorServidor}</AlertDescription>
@@ -241,7 +322,7 @@ export function InstallationForm({
             <Select
               defaultValue={watch("modalidad")}
               onValueChange={(v) =>
-                setValue("modalidad", v as FormInstalacion["modalidad"])
+                setValue("modalidad", v as FormInstalacion["modalidad"], { shouldDirty: true })
               }
             >
               <SelectTrigger id="modalidad" aria-invalid={!!errors.modalidad}>
@@ -267,7 +348,7 @@ export function InstallationForm({
             <Select
               defaultValue={watch("tecnologia")}
               onValueChange={(v) =>
-                setValue("tecnologia", v as FormInstalacion["tecnologia"])
+                setValue("tecnologia", v as FormInstalacion["tecnologia"], { shouldDirty: true })
               }
             >
               <SelectTrigger id="tecnologia" aria-invalid={!!errors.tecnologia}>
@@ -342,27 +423,23 @@ export function InstallationForm({
         </div>
       </section>
 
-      {/* ── Acciones ── */}
-      <div className="flex items-center justify-end gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-          disabled={isSubmitting}
-        >
-          Cancelar
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isSubmitting
-            ? esEdicion
-              ? "Guardando..."
-              : "Creando..."
-            : esEdicion
-            ? "Guardar cambios"
-            : "Crear instalación"}
-        </Button>
-      </div>
+      {/* ── Acciones (solo creación) ── */}
+      {!esEdicion && (
+        <div className="flex items-center justify-end gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.back()}
+            disabled={isSubmitting}
+          >
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isSubmitting ? "Creando..." : "Crear instalación"}
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

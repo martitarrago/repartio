@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
-import { InstallationForm } from "@/components/installations/InstallationForm";
+import { WizardInstalacion } from "@/components/installations/WizardInstalacion";
 
 export default function NuevaInstalacionPage() {
   return (
@@ -10,7 +10,7 @@ export default function NuevaInstalacionPage() {
       <Header breadcrumb="Nueva instalación" />
 
       <div className="flex-1 px-8 py-8">
-        <div className="mx-auto max-w-2xl">
+        <div className="mx-auto max-w-3xl">
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-[20px] font-semibold text-[#0A0A0A]">Nueva instalación</h1>
@@ -23,7 +23,7 @@ export default function NuevaInstalacionPage() {
               </Link>
             </Button>
           </div>
-          <InstallationForm />
+          <WizardInstalacion />
         </div>
       </div>
     </div>

@@ -8,6 +8,7 @@ import {
   Save,
   X,
   AlertCircle,
+  CheckCircle2,
   Users,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -59,6 +60,21 @@ const esquemaParticipante = z.object({
 });
 
 type FormParticipante = z.infer<typeof esquemaParticipante>;
+
+// ─── Validación por fila ─────────────────────────────────────────────────────
+
+function validarParticipante(p: Participante): { valido: boolean; mensaje: string } {
+  if (!p.cups || p.cups.length !== 22) {
+    return { valido: false, mensaje: "CUPS debe tener 22 caracteres" };
+  }
+  if (!/^ES/i.test(p.cups)) {
+    return { valido: false, mensaje: "CUPS debe empezar por ES" };
+  }
+  if (!p.nombre || p.nombre.length < 2) {
+    return { valido: false, mensaje: "Nombre demasiado corto" };
+  }
+  return { valido: true, mensaje: "Válido" };
+}
 
 // ─── Componente ──────────────────────────────────────────────────────────────
 
@@ -282,52 +298,69 @@ export function ParticipantesTab({
                 <TableHead>CUPS</TableHead>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Notas</TableHead>
+                <TableHead className="w-24">Estado</TableHead>
                 {!soloLectura && (
                   <TableHead className="w-24 text-right">Acciones</TableHead>
                 )}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {participantes.map((p, i) => (
-                <TableRow key={p.id}>
-                  <TableCell className="text-muted-foreground text-xs">
-                    {i + 1}
-                  </TableCell>
-                  <TableCell>
-                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                      {p.cups}
-                    </code>
-                  </TableCell>
-                  <TableCell className="font-medium">{p.nombre}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {p.descripcion ?? "—"}
-                  </TableCell>
-                  {!soloLectura && (
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7"
-                          onClick={() => abrirDialogoEditar(p)}
-                          title="Editar"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7 text-destructive hover:text-destructive"
-                          onClick={() => setEliminandoId(p.id)}
-                          title="Eliminar"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
+              {participantes.map((p, i) => {
+                const validacion = validarParticipante(p);
+                return (
+                  <TableRow key={p.id}>
+                    <TableCell className="text-muted-foreground text-xs">
+                      {i + 1}
                     </TableCell>
-                  )}
-                </TableRow>
-              ))}
+                    <TableCell>
+                      <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                        {p.cups}
+                      </code>
+                    </TableCell>
+                    <TableCell className="font-medium">{p.nombre}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {p.descripcion ?? "—"}
+                    </TableCell>
+                    <TableCell>
+                      {validacion.valido ? (
+                        <div className="flex items-center gap-1 text-green-600">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          <span className="text-xs font-medium">Válido</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-destructive" title={validacion.mensaje}>
+                          <AlertCircle className="h-3.5 w-3.5" />
+                          <span className="text-xs font-medium">Revisar</span>
+                        </div>
+                      )}
+                    </TableCell>
+                    {!soloLectura && (
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            onClick={() => abrirDialogoEditar(p)}
+                            title="Editar"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 text-destructive hover:text-destructive"
+                            onClick={() => setEliminandoId(p.id)}
+                            title="Eliminar"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

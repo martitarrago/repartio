@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { descargarFicheroTxt } from "@/lib/generators/txtGenerator";
@@ -145,21 +146,31 @@ export function VistaPrevia({
             <FileText className="h-5 w-5 text-primary" />
             Vista previa del fichero
           </DialogTitle>
-          <DialogDescription>
-            {nombreFichero} — Anejo I RD 244/2019
+          <DialogDescription className="break-all">
+            Anejo I RD 244/2019
           </DialogDescription>
         </DialogHeader>
 
-        {/* Metadatos */}
-        <div className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-lg border bg-muted/30 p-4 sm:grid-cols-4">
-          <FilaMeta label="Nombre" valor={nombreFichero} />
-          <FilaMeta label="Codificación" valor="UTF-8 sin BOM" />
-          <FilaMeta label="Separador" valor="Punto y coma (;)" />
-          <FilaMeta label="Decimal" valor="Coma (,)" />
-          <FilaMeta label="Modo" valor={modo === "CONSTANTE" ? "Constante" : "Variable (8760h)"} />
-          <FilaMeta label="Año" valor={anio} />
-          <FilaMeta label="Total líneas" valor={totalLineas.toLocaleString("es-ES")} />
-          <FilaMeta label="Tamaño" valor={formatearTamano(tamanoBytes)} />
+        {/* Nombre del fichero */}
+        <div className="rounded-md bg-muted/30 px-4 py-2">
+          <p className="text-xs text-muted-foreground">Nombre del fichero</p>
+          <p className="font-mono text-sm font-medium break-all">{nombreFichero}</p>
+        </div>
+
+        {/* Metadatos con badges */}
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
+            <FilaMeta label="Modo" valor={modo === "CONSTANTE" ? "Constante" : "Variable (8760h)"} />
+            <FilaMeta label="Año" valor={anio} />
+            <FilaMeta label="Total líneas" valor={totalLineas.toLocaleString("es-ES")} />
+            <FilaMeta label="Tamaño" valor={formatearTamano(tamanoBytes)} />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="outline" className="text-xs font-normal">UTF-8 sin BOM</Badge>
+            <Badge variant="outline" className="text-xs font-normal">Separador: ;</Badge>
+            <Badge variant="outline" className="text-xs font-normal">Decimal: ,</Badge>
+            <Badge variant="outline" className="text-xs font-normal">6 decimales</Badge>
+          </div>
         </div>
 
         {/* Código */}

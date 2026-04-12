@@ -1,15 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Download,
+  CheckCircle2,
   Eye,
   Loader2,
-  Save,
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
-import { descargarFicheroTxt } from "@/lib/generators/txtGenerator";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -74,9 +72,43 @@ export function EditorCoeficientes({
   const [tieneCambiosSinGuardar, setTieneCambiosSinGuardar] = useState(false);
   const [confirmarCambioModo, setConfirmarCambioModo] = useState(false);
   const [modoSolicitado, setModoSolicitado] = useState<ModoCoeficiente | null>(null);
-  const [generando, setGenerando] = useState(false);
+  const [estadoGuardado, setEstadoGuardado] = useState<"idle" | "guardando" | "guardado">("idle");
 
-  const { guardar, guardando, error: errorGuardado } = useEditorCoeficientes();
+  const { guardar, error: errorGuardado } = useEditorCoeficientes();
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ─── Auto-save con debounce ────────────────────────────────────────────────
+  const doAutoSave = useCallback(async () => {
+    if (soloLectura) return;
+    setEstadoGuardado("guardando");
+    const id = await guardar({
+      instalacionId,
+      conjuntoId,
+      modo,
+      entradasConstantes,
+      entradasVariables,
+    });
+    if (id) {
+      setConjuntoId(id);
+      setTieneCambiosSinGuardar(false);
+      setEstadoGuardado("guardado");
+      onGuardado?.(id);
+      setTimeout(() => setEstadoGuardado("idle"), 2000);
+    } else {
+      setEstadoGuardado("idle");
+    }
+  }, [instalacionId, conjuntoId, modo, entradasConstantes, entradasVariables, soloLectura, guardar, onGuardado]);
+
+  useEffect(() => {
+    if (!tieneCambiosSinGuardar || soloLectura) return;
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      doAutoSave();
+    }, 2000);
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+  }, [tieneCambiosSinGuardar, entradasConstantes, entradasVariables, modo, doAutoSave, soloLectura]);
 
   // ─── Validación reactiva ───────────────────────────────────────────────────
   const estadoValidacion = useMemo(() => {
@@ -118,62 +150,10 @@ export function EditorCoeficientes({
     setResultadoGeneracion(null);
   }
 
-  async function handleGuardar() {
-    const id = await guardar({
-      instalacionId,
-      conjuntoId,
-      modo,
-      entradasConstantes,
-      entradasVariables,
-    });
-    if (id) {
-      setConjuntoId(id);
-      setTieneCambiosSinGuardar(false);
-      onGuardado?.(id);
-    }
-  }
-
   function handleVistaPrevia() {
     const resultado = generarFicheroTxt({ modo, entradasConstantes, entradasVariables, anio, cau });
     setResultadoGeneracion(resultado);
     if (resultado.exito) setMostrarPrevia(true);
-  }
-
-  async function handleGenerarYDescargar() {
-    setGenerando(true);
-    setResultadoGeneracion(null);
-    try {
-      // 1. Auto-guardar si hay cambios o no existe el conjunto
-      let idConjunto: string | undefined = conjuntoId;
-      if (!idConjunto || tieneCambiosSinGuardar) {
-        const nuevoId = await guardar({ instalacionId, conjuntoId, modo, entradasConstantes, entradasVariables });
-        if (!nuevoId) return; // guardar ya pone el error
-        idConjunto = nuevoId;
-        setConjuntoId(nuevoId);
-        setTieneCambiosSinGuardar(false);
-        onGuardado?.(nuevoId);
-      }
-
-      // 2. Generar desde DB (guarda en HistorialFichero)
-      const res = await fetch(
-        `/api/installations/${instalacionId}/coefficients/${idConjunto}/generate`,
-        { method: "POST" }
-      );
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        setResultadoGeneracion({ exito: false, error: body.message ?? "Error al generar" });
-        return;
-      }
-
-      const { contenido, nombreFichero, totalLineas } = await res.json();
-
-      // 3. Descargar en el navegador
-      descargarFicheroTxt(contenido, nombreFichero);
-      setResultadoGeneracion({ exito: true, contenido, nombreFichero, totalLineas });
-    } finally {
-      setGenerando(false);
-    }
   }
 
   // ─── Render ────────────────────────────────────────────────────────────────
@@ -181,7 +161,7 @@ export function EditorCoeficientes({
 
   return (
     <div className="space-y-6">
-      {/* Barra superior: modo + acciones */}
+      {/* Barra superior: modo + estado */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Toggle de modo */}
         <div className="flex items-center gap-2 rounded-lg border bg-muted/30 p-1">
@@ -211,50 +191,39 @@ export function EditorCoeficientes({
           </button>
         </div>
 
-        {/* Acciones */}
-        {!soloLectura && (
-          <div className="flex items-center gap-2">
-            {tieneCambiosSinGuardar && (
-              <span className="text-xs text-amber-600">Cambios sin guardar</span>
+        {/* Estado de guardado + Vista previa */}
+        <div className="flex items-center gap-3">
+          {/* Indicador de estado */}
+          <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+            {estadoGuardado === "guardando" && (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Guardando...
+              </>
             )}
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleGuardar}
-              disabled={guardando || generando}
-            >
-              {guardando ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="mr-2 h-4 w-4" />
-              )}
-              {guardando ? "Guardando..." : "Guardar"}
-            </Button>
+            {estadoGuardado === "guardado" && (
+              <>
+                <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                <span className="text-green-600">Guardado</span>
+              </>
+            )}
+            {estadoGuardado === "idle" && tieneCambiosSinGuardar && (
+              <span className="text-amber-600">Cambios sin guardar</span>
+            )}
+          </span>
 
+          {!soloLectura && (
             <Button
               size="sm"
               variant="outline"
               onClick={handleVistaPrevia}
-              disabled={!puedeGenerar || guardando || generando}
+              disabled={!puedeGenerar}
             >
               <Eye className="mr-2 h-4 w-4" />
               Vista previa
             </Button>
-
-            <Button
-              size="sm"
-              onClick={handleGenerarYDescargar}
-              disabled={!puedeGenerar || guardando || generando}
-            >
-              {generando ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="mr-2 h-4 w-4" />
-              )}
-              {generando ? "Generando..." : "Descargar .txt"}
-            </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Descripción del modo */}
