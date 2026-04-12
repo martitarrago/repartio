@@ -6,21 +6,33 @@ import { prisma } from "@/lib/prisma";
 import type { InstalacionResumen } from "@/types/editor";
 
 export default async function DashboardPage() {
-  const session = await auth();
+  let session;
+  try {
+    session = await auth();
+  } catch (e) {
+    console.error("[DASHBOARD] auth() failed:", e);
+    throw e;
+  }
   const organizacionId = (session?.user as any)?.organizacionId as string;
 
-  const raw = await prisma.instalacion.findMany({
-    where: { organizacionId },
-    include: {
-      _count: { select: { participantes: { where: { activo: true } } } },
-      conjuntos: {
-        where: { estado: { in: ["VALIDADO", "PUBLICADO"] } },
-        select: { id: true },
-        take: 1,
+  let raw;
+  try {
+    raw = await prisma.instalacion.findMany({
+      where: { organizacionId },
+      include: {
+        _count: { select: { participantes: { where: { activo: true } } } },
+        conjuntos: {
+          where: { estado: { in: ["VALIDADO", "PUBLICADO"] } },
+          select: { id: true },
+          take: 1,
+        },
       },
-    },
-    orderBy: { actualizadaEn: "desc" },
-  });
+      orderBy: { actualizadaEn: "desc" },
+    });
+  } catch (e) {
+    console.error("[DASHBOARD] prisma query failed:", e);
+    throw e;
+  }
 
   const instalaciones: InstalacionResumen[] = raw.map((i) => ({
     id: i.id,
