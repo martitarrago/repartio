@@ -19,19 +19,15 @@ export function formatearBeta(valor: number): string {
   return valor.toFixed(6).replace(".", ",");
 }
 
-/** Formatea hora del día como entero (0-23) */
-export function formatearHora(hora: number): string {
-  return hora.toString();
+/**
+ * Formatea hora absoluta del año como 4 dígitos, 1-indexed (0001–8760).
+ * horaAbs es 0-indexed (0–8759) → salida "0001"–"8760"
+ */
+export function formatearHora(horaAbs: number): string {
+  return (horaAbs + 1).toString().padStart(4, "0");
 }
 
-/** Codifica tipo de día según Anejo I RD 244/2019: 1=Laborable, 2=Sábado, 3=Festivo */
-export function codificarTipoDia(tipo: TipoDia): number {
-  if (tipo === "LABORABLE") return 1;
-  if (tipo === "SABADO") return 2;
-  return 3; // FESTIVO
-}
-
-/** Nombre del fichero según Anejo I RD 244/2019: {CAU}_{AÑO}.txt */
+/** Nombre del fichero según spec 2026: {CAU}_{AÑO}.txt */
 export function getNombreFichero(anio: number, cau: string): string {
   return `${cau}_${anio}.txt`;
 }
@@ -194,7 +190,7 @@ export function generarContenidoVariable(
             error: `Valor inválido para ${entrada.cups} — ${tipoDia} hora ${horaDia}: "${raw}"`,
           };
         }
-        lineas[idx++] = `${entrada.cups};${formatearHora(horaDia)};${codificarTipoDia(tipoDia)};${formatearBeta(n)}`;
+        lineas[idx++] = `${entrada.cups};${formatearHora(horaAbs)};${formatearBeta(n)}`;
       }
     }
 
@@ -293,7 +289,7 @@ export function verificarFormatoFichero(contenido: string): {
 
   if (primeraLinea.length === 2) {
     modo = "CONSTANTE";
-  } else if (primeraLinea.length === 4) {
+  } else if (primeraLinea.length === 3) {
     modo = "VARIABLE";
   } else {
     errores.push(`Formato de primera línea incorrecto: "${lineas[0]}"`);
@@ -304,7 +300,7 @@ export function verificarFormatoFichero(contenido: string): {
   const muestra = lineas.slice(0, Math.min(10, lineas.length));
   for (const [i, linea] of muestra.entries()) {
     const partes = linea.split(";");
-    if (partes.length !== (modo === "CONSTANTE" ? 2 : 4)) {
+    if (partes.length !== (modo === "CONSTANTE" ? 2 : 3)) {
       errores.push(`Línea ${i + 1}: número de columnas incorrecto`);
     }
   }
