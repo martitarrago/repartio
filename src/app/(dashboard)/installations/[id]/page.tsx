@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { InstallationForm } from "@/components/installations/InstallationForm";
 import { ParticipantesTab } from "@/components/installations/ParticipantesTab";
 import { DocumentoTab } from "@/components/installations/DocumentoTab";
+import { DocumentosTab } from "@/components/installations/DocumentosTab";
 import { EditorCoeficientesLazy } from "@/components/editor/EditorCoeficientesLazy";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -183,7 +184,8 @@ const TAB_LABELS: Record<string, string> = {
   detalles: "Detalles",
   participantes: "Participantes",
   coeficientes: "Coeficientes",
-  documento: "Documento .txt",
+  documento: ".txt",
+  documentos: "Documentos",
 };
 
 // ─── Página ───────────────────────────────────────────────────────────────────
@@ -303,7 +305,7 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
           </div>
         </TabsContent>
 
-        {/* ── Documento .txt ── */}
+        {/* ── .txt ── */}
         <TabsContent value="documento" className="mt-0">
           <div className="py-6">
             <DocumentoTab
@@ -316,6 +318,13 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
               historial={historial}
               tieneConjuntoValidado={instalacion.tieneConjuntoValidado}
             />
+          </div>
+        </TabsContent>
+
+        {/* ── Documentos ── */}
+        <TabsContent value="documentos" className="mt-0">
+          <div className="py-6">
+            <DocumentosTab instalacionId={instalacion.id} />
           </div>
         </TabsContent>
       </Tabs>
