@@ -20,19 +20,7 @@ export function InstallationCard({ instalacion }: { instalacion: InstalacionResu
 
   return (
     <Link href={`/installations/${instalacion.id}`} className="group block">
-      <div
-        className="rounded-lg bg-white p-5 transition-all duration-200 hover:-translate-y-px"
-        style={{
-          border: "1px solid rgba(0,0,0,0.06)",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)";
-        }}
-      >
+      <div className="rounded-lg bg-white p-5 border border-black/[0.06] shadow-card transition-all duration-200 hover:-translate-y-px hover:shadow-card-hover">
         {/* Header: name + badge */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
