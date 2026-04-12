@@ -72,7 +72,7 @@ function StatCard({
   return (
     <div className="rounded-lg border border-border bg-card p-6">
       <p className="text-sm font-medium text-muted-foreground">{titulo}</p>
-      <p className="mt-2 text-3xl font-bold tabular-nums">{valor}</p>
+      <p className="mt-2 text-3xl font-bold tabular-nums text-foreground">{valor}</p>
       <p className="mt-1 text-xs text-muted-foreground">{descripcion}</p>
     </div>
   );

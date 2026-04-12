@@ -20,10 +20,10 @@ import type { InstalacionResumen } from "@/types/editor";
 
 const ESTADO_BADGE: Record<
   InstalacionResumen["estado"],
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+  { label: string; variant: "default" | "secondary" | "destructive" | "success" | "outline" }
 > = {
   BORRADOR: { label: "Borrador", variant: "secondary" },
-  ACTIVA: { label: "Activa", variant: "default" },
+  ACTIVA: { label: "Activa", variant: "success" },
   SUSPENDIDA: { label: "Suspendida", variant: "outline" },
   BAJA: { label: "Baja", variant: "destructive" },
 };
@@ -57,8 +57,8 @@ export function InstallationCard({ instalacion }: InstallationCardProps) {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-              <Zap className="h-5 w-5 text-primary" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-energy/15">
+              <Zap className="h-5 w-5 text-energy" />
             </div>
             <div>
               <h3 className="font-semibold leading-tight text-foreground line-clamp-1">
@@ -114,13 +114,13 @@ export function InstallationCard({ instalacion }: InstallationCardProps) {
 
       <CardFooter className="flex items-center justify-between pt-0">
         {instalacion.tieneConjuntoValidado ? (
-          <div className="flex items-center gap-1 text-xs text-green-600">
+          <div className="flex items-center gap-1 text-xs text-success">
             <BadgeCheck className="h-3.5 w-3.5" />
             <span>Reparto validado</span>
           </div>
         ) : (
-          <div className="flex items-center gap-1 text-xs text-amber-600">
-            <span className="h-2 w-2 rounded-full bg-amber-400" />
+          <div className="flex items-center gap-1 text-xs text-energy-foreground/60">
+            <span className="h-2 w-2 rounded-full bg-energy" />
             <span>Sin validar</span>
           </div>
         )}
