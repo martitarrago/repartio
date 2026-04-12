@@ -19,24 +19,21 @@ export function formatearBeta(valor: number): string {
   return valor.toFixed(6).replace(".", ",");
 }
 
-/** Formatea hora como entero sin ceros a la izquierda (0-8759) */
+/** Formatea hora del día como entero (0-23) */
 export function formatearHora(hora: number): string {
   return hora.toString();
 }
 
-/** Nombre del fichero según convención: REPARTIO_AAAA_MMDDHHMMSS.txt */
+/** Codifica tipo de día según Anejo I RD 244/2019: 1=Laborable, 2=Sábado, 3=Festivo */
+export function codificarTipoDia(tipo: TipoDia): number {
+  if (tipo === "LABORABLE") return 1;
+  if (tipo === "SABADO") return 2;
+  return 3; // FESTIVO
+}
+
+/** Nombre del fichero según Anejo I RD 244/2019: {CAU}_{AÑO}.txt */
 export function getNombreFichero(anio: number, cau: string): string {
-  const ahora = new Date();
-  const pad = (n: number, l = 2) => n.toString().padStart(l, "0");
-  const ts = [
-    pad(ahora.getMonth() + 1),
-    pad(ahora.getDate()),
-    pad(ahora.getHours()),
-    pad(ahora.getMinutes()),
-    pad(ahora.getSeconds()),
-  ].join("");
-  const cauClean = cau.replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 10);
-  return `${cauClean}_${anio}_${ts}.txt`;
+  return `${cau}_${anio}.txt`;
 }
 
 // ─── Algoritmo calendario español ────────────────────────────────────────────
@@ -197,7 +194,7 @@ export function generarContenidoVariable(
             error: `Valor inválido para ${entrada.cups} — ${tipoDia} hora ${horaDia}: "${raw}"`,
           };
         }
-        lineas[idx++] = `${entrada.cups};${formatearHora(horaAbs)};${formatearBeta(n)}`;
+        lineas[idx++] = `${entrada.cups};${formatearHora(horaDia)};${codificarTipoDia(tipoDia)};${formatearBeta(n)}`;
       }
     }
 
@@ -296,7 +293,7 @@ export function verificarFormatoFichero(contenido: string): {
 
   if (primeraLinea.length === 2) {
     modo = "CONSTANTE";
-  } else if (primeraLinea.length === 3) {
+  } else if (primeraLinea.length === 4) {
     modo = "VARIABLE";
   } else {
     errores.push(`Formato de primera línea incorrecto: "${lineas[0]}"`);
@@ -307,7 +304,7 @@ export function verificarFormatoFichero(contenido: string): {
   const muestra = lineas.slice(0, Math.min(10, lineas.length));
   for (const [i, linea] of muestra.entries()) {
     const partes = linea.split(";");
-    if (partes.length !== (modo === "CONSTANTE" ? 2 : 3)) {
+    if (partes.length !== (modo === "CONSTANTE" ? 2 : 4)) {
       errores.push(`Línea ${i + 1}: número de columnas incorrecto`);
     }
   }
