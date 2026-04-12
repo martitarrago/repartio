@@ -21,75 +21,86 @@ import { InstallationForm } from "@/components/installations/InstallationForm";
 import { ParticipantesTab } from "@/components/installations/ParticipantesTab";
 import { HistorialTab } from "@/components/installations/HistorialTab";
 import { EditorCoeficientesLazy } from "@/components/editor/EditorCoeficientesLazy";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import type { InstalacionResumen, Participante } from "@/types/editor";
 import type { RegistroHistorial } from "@/components/installations/HistorialTab";
 
-// ─── Datos de ejemplo (reemplazar con Prisma) ─────────────────────────────────
+// ─── Carga de datos desde Prisma ─────────────────────────────────────────────
 
-async function getInstalacion(id: string): Promise<{
+async function getInstalacion(
+  id: string,
+  organizacionId: string
+): Promise<{
   instalacion: InstalacionResumen;
   participantes: Participante[];
   historial: RegistroHistorial[];
 } | null> {
-  // TODO: reemplazar con Prisma
-  if (id === "nueva") return null;
-
-  return {
-    instalacion: {
-      id,
-      nombre: "Comunidad Solar Parque Sur",
-      cau: "ES0000000000000001AA0F",
-      anio: 2024,
-      modalidad: "COLECTIVO_CON_EXCEDENTES",
-      tecnologia: "FOTOVOLTAICA",
-      estado: "ACTIVA",
-      municipio: "Madrid",
-      provincia: "Madrid",
-      potenciaKw: 50,
-      totalParticipantes: 3,
-      tieneConjuntoValidado: true,
-      creadaEn: "2024-01-15T10:00:00Z",
-      actualizadaEn: "2024-03-20T14:30:00Z",
+  const inst = await prisma.instalacion.findFirst({
+    where: { id, organizacionId },
+    include: {
+      _count: { select: { participantes: { where: { activo: true } } } },
+      conjuntos: {
+        where: { estado: { in: ["VALIDADO", "PUBLICADO"] } },
+        select: { id: true },
+        take: 1,
+      },
     },
-    participantes: [
-      {
-        id: "p1",
-        cups: "ES0000000000000001AA",
-        nombre: "Piso 1A — García López",
-        descripcion: "Propietario",
-        orden: 0,
-        activo: true,
-      },
-      {
-        id: "p2",
-        cups: "ES0000000000000002BB",
-        nombre: "Piso 2B — Martínez Ruiz",
-        descripcion: "Arrendatario",
-        orden: 1,
-        activo: true,
-      },
-      {
-        id: "p3",
-        cups: "ES0000000000000003CC",
-        nombre: "Local Bajo — Comercial XYZ",
-        orden: 2,
-        activo: true,
-      },
-    ],
-    historial: [
-      {
-        id: "h1",
-        nombreFichero: "ES0000000000000001AA0F_2024_0320143022.txt",
-        modo: "CONSTANTE",
-        totalLineas: 3,
-        totalParticipantes: 3,
-        verificacionSuma: true,
-        generadoEn: "2024-03-20T14:30:22Z",
-        generadoPor: "admin@ejemplo.com",
-        storageUrl: undefined,
-      },
-    ],
+  });
+
+  if (!inst) return null;
+
+  const participantesRaw = await prisma.participante.findMany({
+    where: { instalacionId: id, activo: true },
+    orderBy: { orden: "asc" },
+  });
+
+  const historialRaw = await prisma.historialFichero.findMany({
+    where: { conjunto: { instalacionId: id } },
+    include: { generadoPor: { select: { email: true } } },
+    orderBy: { generadoEn: "desc" },
+    take: 50,
+  });
+
+  const instalacion: InstalacionResumen = {
+    id: inst.id,
+    nombre: inst.nombre,
+    cau: inst.cau,
+    anio: inst.anio,
+    modalidad: inst.modalidad,
+    tecnologia: inst.tecnologia,
+    estado: inst.estado,
+    municipio: inst.municipio ?? undefined,
+    provincia: inst.provincia ?? undefined,
+    potenciaKw: inst.potenciaKw ? Number(inst.potenciaKw) : undefined,
+    totalParticipantes: inst._count.participantes,
+    tieneConjuntoValidado: inst.conjuntos.length > 0,
+    creadaEn: inst.creadaEn.toISOString(),
+    actualizadaEn: inst.actualizadaEn.toISOString(),
   };
+
+  const participantes: Participante[] = participantesRaw.map((p) => ({
+    id: p.id,
+    cups: p.cups,
+    nombre: p.nombre,
+    descripcion: p.descripcion ?? undefined,
+    orden: p.orden,
+    activo: p.activo,
+  }));
+
+  const historial: RegistroHistorial[] = historialRaw.map((h) => ({
+    id: h.id,
+    nombreFichero: h.nombreFichero,
+    modo: h.modo,
+    totalLineas: h.totalLineas,
+    totalParticipantes: h.totalParticipantes,
+    verificacionSuma: h.verificacionSuma,
+    generadoEn: h.generadoEn.toISOString(),
+    generadoPor: h.generadoPor?.email ?? undefined,
+    storageUrl: h.storageUrl ?? undefined,
+  }));
+
+  return { instalacion, participantes, historial };
 }
 
 // ─── Badge de estado ──────────────────────────────────────────────────────────
@@ -128,7 +139,9 @@ interface Props {
 export default async function InstalacionPage({ params, searchParams }: Props) {
   const { id } = await params;
   const { tab } = await searchParams;
-  const datos = await getInstalacion(id);
+  const session = await auth();
+  const organizacionId = (session?.user as any)?.organizacionId as string;
+  const datos = await getInstalacion(id, organizacionId);
 
   if (!datos) notFound();
 

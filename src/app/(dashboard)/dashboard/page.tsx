@@ -4,63 +4,44 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Header } from "@/components/layout/Header";
 import { InstallationCard } from "@/components/installations/InstallationCard";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import type { InstalacionResumen } from "@/types/editor";
-
-// ─── Datos demo ───────────────────────────────────────────────────────────────
-const DEMO_INSTALACIONES: InstalacionResumen[] = [
-  {
-    id: "1",
-    nombre: "Comunidad Solar Parque Sur",
-    cau: "ES0000000000000001AA0F",
-    anio: 2024,
-    modalidad: "COLECTIVO_CON_EXCEDENTES",
-    tecnologia: "FOTOVOLTAICA",
-    estado: "ACTIVA",
-    municipio: "Madrid",
-    provincia: "Madrid",
-    potenciaKw: 50,
-    totalParticipantes: 12,
-    tieneConjuntoValidado: true,
-    creadaEn: "2024-01-15T10:00:00Z",
-    actualizadaEn: "2024-03-20T14:30:00Z",
-  },
-  {
-    id: "2",
-    nombre: "Bloque Energético Residencial Norte",
-    cau: "ES0000000000000002BB0F",
-    anio: 2024,
-    modalidad: "COLECTIVO_SIN_EXCEDENTES",
-    tecnologia: "FOTOVOLTAICA",
-    estado: "BORRADOR",
-    municipio: "Barcelona",
-    provincia: "Barcelona",
-    potenciaKw: 30,
-    totalParticipantes: 8,
-    tieneConjuntoValidado: false,
-    creadaEn: "2024-02-01T09:00:00Z",
-    actualizadaEn: "2024-02-10T11:00:00Z",
-  },
-  {
-    id: "3",
-    nombre: "Cooperativa Eólica La Ribera",
-    cau: "ES0000000000000003CC0F",
-    anio: 2023,
-    modalidad: "COLECTIVO_CON_EXCEDENTES",
-    tecnologia: "EOLICA",
-    estado: "ACTIVA",
-    municipio: "Zaragoza",
-    provincia: "Zaragoza",
-    potenciaKw: 200,
-    totalParticipantes: 45,
-    tieneConjuntoValidado: true,
-    creadaEn: "2023-06-01T08:00:00Z",
-    actualizadaEn: "2023-12-01T16:00:00Z",
-  },
-];
 
 // ─── Página ───────────────────────────────────────────────────────────────────
 export default async function DashboardPage() {
-  const instalaciones = DEMO_INSTALACIONES;
+  const session = await auth();
+  const organizacionId = (session?.user as any)?.organizacionId as string;
+
+  const raw = await prisma.instalacion.findMany({
+    where: { organizacionId },
+    include: {
+      _count: { select: { participantes: { where: { activo: true } } } },
+      conjuntos: {
+        where: { estado: { in: ["VALIDADO", "PUBLICADO"] } },
+        select: { id: true },
+        take: 1,
+      },
+    },
+    orderBy: { actualizadaEn: "desc" },
+  });
+
+  const instalaciones: InstalacionResumen[] = raw.map((i) => ({
+    id: i.id,
+    nombre: i.nombre,
+    cau: i.cau,
+    anio: i.anio,
+    modalidad: i.modalidad,
+    tecnologia: i.tecnologia,
+    estado: i.estado,
+    municipio: i.municipio ?? undefined,
+    provincia: i.provincia ?? undefined,
+    potenciaKw: i.potenciaKw ? Number(i.potenciaKw) : undefined,
+    totalParticipantes: i._count.participantes,
+    tieneConjuntoValidado: i.conjuntos.length > 0,
+    creadaEn: i.creadaEn.toISOString(),
+    actualizadaEn: i.actualizadaEn.toISOString(),
+  }));
 
   const activas = instalaciones.filter((i) => i.estado === "ACTIVA").length;
   const validadas = instalaciones.filter((i) => i.tieneConjuntoValidado).length;
