@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Users } from "lucide-react";
 import type { InstalacionResumen } from "@/types/editor";
 
 const ESTADO: Record<
@@ -13,6 +14,9 @@ const ESTADO: Record<
 
 export function InstallationCard({ instalacion }: { instalacion: InstalacionResumen }) {
   const estado = ESTADO[instalacion.estado];
+  const direccion = [instalacion.municipio, instalacion.provincia]
+    .filter(Boolean)
+    .join(", ");
 
   return (
     <Link href={`/installations/${instalacion.id}`} className="group block">
@@ -35,9 +39,11 @@ export function InstallationCard({ instalacion }: { instalacion: InstalacionResu
             <p className="truncate text-lg font-semibold text-[#18181B]">
               {instalacion.nombre}
             </p>
-            <p className="mt-0.5 font-mono text-2xs text-[#A1A1AA]">
-              {instalacion.cau}
-            </p>
+            {direccion && (
+              <p className="mt-0.5 text-xs text-[#A1A1AA] truncate">
+                {direccion}
+              </p>
+            )}
           </div>
           <span
             className={`inline-flex shrink-0 items-center rounded-[999px] px-2.5 py-0.5 text-[11px] font-medium ${estado.className}`}
@@ -46,10 +52,13 @@ export function InstallationCard({ instalacion }: { instalacion: InstalacionResu
           </span>
         </div>
 
-        {/* Meta line */}
-        <p className="mt-3 text-sm text-[#71717A]">
-          {instalacion.anio} · {instalacion.totalParticipantes} participante{instalacion.totalParticipantes !== 1 ? "s" : ""}
-        </p>
+        {/* Footer: participants */}
+        <div className="mt-3 flex items-center gap-1.5 text-sm text-[#71717A]">
+          <Users className="h-3.5 w-3.5" />
+          <span>
+            {instalacion.totalParticipantes} participante{instalacion.totalParticipantes !== 1 ? "s" : ""}
+          </span>
+        </div>
       </div>
     </Link>
   );

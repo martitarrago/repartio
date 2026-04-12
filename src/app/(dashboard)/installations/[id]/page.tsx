@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
-  ChevronLeft,
+  ArrowLeft,
   Zap,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Tabs,
@@ -12,7 +11,6 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { Header } from "@/components/layout/Header";
 import { Separator } from "@/components/ui/separator";
 import { InstallationForm } from "@/components/installations/InstallationForm";
 import { ParticipantesTab } from "@/components/installations/ParticipantesTab";
@@ -179,23 +177,6 @@ const ESTADO_BADGE = {
   BAJA:       { label: "Baja",       variant: "error"   as const },
 };
 
-const MODALIDAD_LABEL: Record<string, string> = {
-  INDIVIDUAL_SIN_EXCEDENTES: "Individual sin excedentes",
-  INDIVIDUAL_CON_EXCEDENTES: "Individual con excedentes",
-  COLECTIVO_SIN_EXCEDENTES: "Colectivo sin excedentes",
-  COLECTIVO_CON_EXCEDENTES: "Colectivo con excedentes",
-  SERVICIOS_AUXILIARES: "Servicios auxiliares",
-};
-
-const TECNOLOGIA_LABEL: Record<string, string> = {
-  FOTOVOLTAICA: "Fotovoltaica",
-  EOLICA: "Eólica",
-  HIDRAULICA: "Hidráulica",
-  COGENERACION: "Cogeneración",
-  BIOMASA: "Biomasa",
-  OTRAS: "Otras",
-};
-
 // ─── Tab labels ──────────────────────────────────────────────────────────────
 
 const TAB_LABELS: Record<string, string> = {
@@ -234,118 +215,110 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
   const tabActiva = tab ?? "detalles";
 
   return (
-    <div className="flex flex-col h-full">
-      <Header title={instalacion.nombre} />
+    <div className="mx-auto w-full max-w-[960px] px-8 py-6 space-y-6">
+      {/* Back link */}
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center gap-1.5 text-sm text-[#71717A] hover:text-[#18181B] transition-colors"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" />
+        Volver a instalaciones
+      </Link>
 
-      {/* Info bar */}
-      <div className="px-8 pb-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3 text-sm text-[#71717A]">
-            <Badge variant={estadoBadge.variant}>{estadoBadge.label}</Badge>
-            <span>{MODALIDAD_LABEL[instalacion.modalidad]}</span>
-            <span>·</span>
-            <span>{TECNOLOGIA_LABEL[instalacion.tecnologia]}</span>
-            {instalacion.potenciaKw && (
-              <>
-                <span>·</span>
-                <span>{instalacion.potenciaKw} kW</span>
-              </>
-            )}
-            <span>·</span>
-            <span>
-              <span className="font-semibold text-[#18181B]">{instalacion.totalParticipantes}</span> participantes
-            </span>
-          </div>
-          <Button asChild variant="secondary" size="sm">
-            <Link href="/dashboard">
-              <ChevronLeft className="h-3.5 w-3.5" />
-              Volver
-            </Link>
-          </Button>
+      {/* Title + meta */}
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold text-[#18181B]">
+          {instalacion.nombre}
+        </h1>
+        <div className="flex flex-wrap items-center gap-3 text-sm text-[#71717A]">
+          <span className="font-mono text-xs text-[#A1A1AA]">{instalacion.cau}</span>
+          <span>·</span>
+          <span>{instalacion.anio}</span>
+          <Badge variant={estadoBadge.variant}>{estadoBadge.label}</Badge>
+          <span>·</span>
+          <span>
+            <span className="font-semibold text-[#18181B]">{instalacion.totalParticipantes}</span> participantes
+          </span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex-1 overflow-y-auto">
-        <Tabs defaultValue={tabActiva} className="flex flex-col h-full">
-          <div className="px-8">
-            <TabsList className="h-auto gap-0 rounded-none bg-transparent p-0 border-b border-[#F4F4F5]">
-              {Object.entries(TAB_LABELS).map(([value, label]) => (
-                <TabsTrigger
-                  key={value}
-                  value={value}
-                  className="relative rounded-none border-b-2 border-transparent px-4 py-2.5 text-sm font-normal text-[#A1A1AA] transition-all duration-150 data-[state=active]:border-[#18181B] data-[state=active]:text-[#18181B] data-[state=active]:font-medium data-[state=active]:shadow-none"
-                >
-                  {label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+      <Tabs defaultValue={tabActiva} className="space-y-0">
+        <TabsList className="h-auto gap-0 rounded-none bg-transparent p-0 border-b border-[#F4F4F5]">
+          {Object.entries(TAB_LABELS).map(([value, label]) => (
+            <TabsTrigger
+              key={value}
+              value={value}
+              className="relative rounded-none border-b-2 border-transparent px-4 py-2.5 text-sm font-normal text-[#A1A1AA] transition-all duration-150 data-[state=active]:border-[#18181B] data-[state=active]:text-[#18181B] data-[state=active]:font-medium data-[state=active]:shadow-none"
+            >
+              {label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        {/* ── Detalles ── */}
+        <TabsContent value="detalles" className="mt-0">
+          <div className="py-6">
+            <div className="mx-auto max-w-2xl">
+              <InstallationForm
+                instalacionId={instalacion.id}
+                valoresIniciales={{
+                  nombre: instalacion.nombre,
+                  cau: instalacion.cau,
+                  anio: instalacion.anio,
+                  modalidad: instalacion.modalidad,
+                  tecnologia: instalacion.tecnologia,
+                  potenciaKw: instalacion.potenciaKw,
+                  municipio: instalacion.municipio,
+                  provincia: instalacion.provincia,
+                }}
+              />
+            </div>
           </div>
+        </TabsContent>
 
-          {/* ── Detalles ── */}
-          <TabsContent value="detalles" className="mt-0 flex-1">
-            <div className="px-8 py-6">
-              <div className="mx-auto max-w-2xl">
-                <InstallationForm
-                  instalacionId={instalacion.id}
-                  valoresIniciales={{
-                    nombre: instalacion.nombre,
-                    cau: instalacion.cau,
-                    anio: instalacion.anio,
-                    modalidad: instalacion.modalidad,
-                    tecnologia: instalacion.tecnologia,
-                    potenciaKw: instalacion.potenciaKw,
-                    municipio: instalacion.municipio,
-                    provincia: instalacion.provincia,
-                  }}
-                />
-              </div>
-            </div>
-          </TabsContent>
+        {/* ── Participantes ── */}
+        <TabsContent value="participantes" className="mt-0">
+          <div className="py-6">
+            <ParticipantesTab
+              instalacionId={instalacion.id}
+              participantesIniciales={participantes}
+            />
+          </div>
+        </TabsContent>
 
-          {/* ── Participantes ── */}
-          <TabsContent value="participantes" className="mt-0">
-            <div className="px-8 py-6">
-              <ParticipantesTab
-                instalacionId={instalacion.id}
-                participantesIniciales={participantes}
-              />
-            </div>
-          </TabsContent>
+        {/* ── Coeficientes ── */}
+        <TabsContent value="coeficientes" className="mt-0">
+          <div className="py-6">
+            <CoeficientesTabPlaceholder
+              instalacionId={instalacion.id}
+              cau={instalacion.cau}
+              anio={instalacion.anio}
+              participantes={participantes}
+              conjuntoId={conjuntoActivoId}
+              modoInicial={modoInicial}
+              entradasConstantesIniciales={entradasConstantesIniciales}
+              entradasVariablesIniciales={entradasVariablesIniciales}
+            />
+          </div>
+        </TabsContent>
 
-          {/* ── Coeficientes ── */}
-          <TabsContent value="coeficientes" className="mt-0">
-            <div className="px-8 py-6">
-              <CoeficientesTabPlaceholder
-                instalacionId={instalacion.id}
-                cau={instalacion.cau}
-                anio={instalacion.anio}
-                participantes={participantes}
-                conjuntoId={conjuntoActivoId}
-                modoInicial={modoInicial}
-                entradasConstantesIniciales={entradasConstantesIniciales}
-                entradasVariablesIniciales={entradasVariablesIniciales}
-              />
-            </div>
-          </TabsContent>
-
-          {/* ── Documento .txt ── */}
-          <TabsContent value="documento" className="mt-0">
-            <div className="px-8 py-6">
-              <DocumentoTab
-                instalacionId={instalacion.id}
-                conjuntoId={conjuntoActivoId}
-                nombre={instalacion.nombre}
-                cau={instalacion.cau}
-                anio={instalacion.anio}
-                totalParticipantes={instalacion.totalParticipantes}
-                historial={historial}
-                tieneConjuntoValidado={instalacion.tieneConjuntoValidado}
-              />
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+        {/* ── Documento .txt ── */}
+        <TabsContent value="documento" className="mt-0">
+          <div className="py-6">
+            <DocumentoTab
+              instalacionId={instalacion.id}
+              conjuntoId={conjuntoActivoId}
+              nombre={instalacion.nombre}
+              cau={instalacion.cau}
+              anio={instalacion.anio}
+              totalParticipantes={instalacion.totalParticipantes}
+              historial={historial}
+              tieneConjuntoValidado={instalacion.tieneConjuntoValidado}
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

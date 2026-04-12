@@ -15,6 +15,8 @@ const badgeVariants = cva(
         outline:     "border border-[#E4E4E7] text-[#71717A]",
         secondary:   "bg-[#F4F4F5] text-[#71717A]",
         destructive: "bg-[#FEF2F2] text-[#DC2626]",
+        energy:      "bg-[#FEF3C7] text-[#B45309]",
+        validated:   "bg-[#E5A500]/15 text-[#92400E]",
       },
     },
     defaultVariants: {
