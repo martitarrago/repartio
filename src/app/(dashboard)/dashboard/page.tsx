@@ -6,7 +6,7 @@ import { Header } from "@/components/layout/Header";
 import { InstallationCard } from "@/components/installations/InstallationCard";
 import type { InstalacionResumen } from "@/types/editor";
 
-// ─── Datos de ejemplo (reemplazar con Prisma) ─────────────────────────────────
+// ─── Datos demo ───────────────────────────────────────────────────────────────
 const DEMO_INSTALACIONES: InstalacionResumen[] = [
   {
     id: "1",
@@ -58,112 +58,77 @@ const DEMO_INSTALACIONES: InstalacionResumen[] = [
   },
 ];
 
-// ─── Estadísticas resumen ─────────────────────────────────────────────────────
-
-function StatCard({
-  titulo,
-  valor,
-  descripcion,
-}: {
-  titulo: string;
-  valor: string | number;
-  descripcion: string;
-}) {
-  return (
-    <div className="rounded-lg border border-[#E5E7EB] bg-white p-6 shadow-none">
-      <p className="text-sm font-medium text-[#6B7280]">{titulo}</p>
-      <p className="mt-2 text-3xl font-bold tabular-nums text-[#1A1A1A]">{valor}</p>
-      <p className="mt-1 text-xs text-[#9CA3AF]">{descripcion}</p>
-    </div>
-  );
-}
-
 // ─── Página ───────────────────────────────────────────────────────────────────
-
 export default async function DashboardPage() {
-  // TODO: reemplazar con Prisma + auth
   const instalaciones = DEMO_INSTALACIONES;
 
   const activas = instalaciones.filter((i) => i.estado === "ACTIVA").length;
   const validadas = instalaciones.filter((i) => i.tieneConjuntoValidado).length;
-  const totalParticipantes = instalaciones.reduce(
-    (sum, i) => sum + i.totalParticipantes,
-    0
-  );
+  const totalParticipantes = instalaciones.reduce((s, i) => s + i.totalParticipantes, 0);
 
   return (
     <div className="flex flex-col">
-      <Header
-        titulo="Instalaciones"
-        subtitulo="Gestiona tus comunidades de autoconsumo colectivo"
-        acciones={
-          <Button asChild size="sm">
+      <Header breadcrumb="Instalaciones" />
+
+      <div className="flex-1 px-8 py-8 space-y-6">
+
+        {/* Page header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-[20px] font-semibold text-[#0A0A0A]">Instalaciones</h1>
+          <Button asChild>
             <Link href="/installations/new">
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="h-3.5 w-3.5" />
               Nueva instalación
             </Link>
           </Button>
-        }
-      />
-
-      <div className="flex-1 space-y-6 p-6">
-        {/* Estadísticas */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatCard
-            titulo="Total instalaciones"
-            valor={instalaciones.length}
-            descripcion="En tu organización"
-          />
-          <StatCard
-            titulo="Activas"
-            valor={activas}
-            descripcion="Con reparto en vigor"
-          />
-          <StatCard
-            titulo="Validadas"
-            valor={validadas}
-            descripcion="Fichero listo para envío"
-          />
-          <StatCard
-            titulo="Participantes"
-            valor={totalParticipantes}
-            descripcion="Consumidores totales"
-          />
         </div>
 
-        {/* Búsqueda y filtros */}
+        {/* Stats strip — solo números */}
+        <div className="flex items-center gap-0 divide-x divide-[#E5E7EB]">
+          {[
+            { valor: instalaciones.length, label: "Total" },
+            { valor: activas,              label: "Activas" },
+            { valor: validadas,            label: "Validadas" },
+            { valor: totalParticipantes,   label: "Participantes" },
+          ].map((stat) => (
+            <div key={stat.label} className="px-6 first:pl-0 last:pr-0">
+              <p className="text-[24px] font-semibold tabular-nums text-[#0A0A0A] leading-none">
+                {stat.valor}
+              </p>
+              <p className="mt-1 text-[12px] text-[#9CA3AF]">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Toolbar */}
         <div className="flex items-center gap-3">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nombre o CAU..."
-              className="pl-9"
-            />
+          <div className="relative max-w-xs flex-1">
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#9CA3AF]" />
+            <Input placeholder="Buscar instalación o CAU…" className="pl-9" />
           </div>
         </div>
 
-        {/* Grid de instalaciones */}
+        {/* Grid o empty state */}
         {instalaciones.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-[#E5E7EB] bg-white py-20 text-center">
-            <div className="rounded-full bg-[#F9FAFB] p-4 mb-4">
-              <Plus className="h-8 w-8 text-[#D1D5DB]" />
+          <div className="flex flex-col items-center justify-center rounded-lg border border-[#E5E7EB] bg-white py-24 text-center">
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6]">
+              <Plus className="h-5 w-5 text-[#D1D5DB]" />
             </div>
-            <h3 className="text-lg font-semibold text-[#1A1A1A]">Sin instalaciones</h3>
-            <p className="mt-1 text-sm text-[#6B7280] max-w-sm">
-              Todavía no has creado ninguna instalación. Empieza creando tu
-              primera comunidad de autoconsumo.
+            <p className="text-sm font-medium text-[#374151]">No tienes instalaciones</p>
+            <p className="mt-1 text-xs text-[#9CA3AF]">
+              Crea tu primera comunidad de autoconsumo colectivo.
             </p>
             <Button asChild className="mt-6">
               <Link href="/installations/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Crear primera instalación
+                <Plus className="h-3.5 w-3.5" />
+                Nueva instalación
               </Link>
             </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {instalaciones.map((instalacion) => (
-              <InstallationCard key={instalacion.id} instalacion={instalacion} />
+            {instalaciones.map((i) => (
+              <InstallationCard key={i.id} instalacion={i} />
             ))}
           </div>
         )}

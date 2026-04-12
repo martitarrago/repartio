@@ -13,11 +13,22 @@ const config: Config = {
     container: {
       center: true,
       padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
+      screens: { "2xl": "1400px" },
     },
     extend: {
+      fontFamily: {
+        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+      },
+      fontSize: {
+        "2xs": ["11px", { lineHeight: "16px" }],
+        xs:   ["12px", { lineHeight: "16px" }],
+        sm:   ["13px", { lineHeight: "20px" }],
+        base: ["14px", { lineHeight: "20px" }],
+        lg:   ["16px", { lineHeight: "24px" }],
+        xl:   ["18px", { lineHeight: "28px" }],
+        "2xl":["20px", { lineHeight: "28px" }],
+        "3xl":["24px", { lineHeight: "32px" }],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -35,18 +46,6 @@ const config: Config = {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
-        },
-        success: {
-          DEFAULT: "hsl(var(--success))",
-          foreground: "hsl(var(--success-foreground))",
-        },
-        warning: {
-          DEFAULT: "hsl(var(--warning))",
-          foreground: "hsl(var(--warning-foreground))",
-        },
-        energy: {
-          DEFAULT: "hsl(var(--energy))",
-          foreground: "hsl(var(--energy-foreground))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -66,9 +65,9 @@ const config: Config = {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "8px",
+        md: "6px",
+        sm: "4px",
       },
       keyframes: {
         "accordion-down": {

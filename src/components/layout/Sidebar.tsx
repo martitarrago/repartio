@@ -15,70 +15,38 @@ import {
 import { cn } from "@/lib/utils/cn";
 
 const navItems = [
-  {
-    label: "Inicio",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Instalaciones",
-    href: "/installations",
-    icon: Building2,
-  },
-  {
-    label: "Ficheros",
-    href: "/files",
-    icon: FileText,
-    disabled: true,
-  },
-  {
-    label: "Estadísticas",
-    href: "/stats",
-    icon: BarChart3,
-    disabled: true,
-  },
+  { label: "Inicio",        href: "/dashboard",     icon: LayoutDashboard },
+  { label: "Instalaciones", href: "/installations",  icon: Building2 },
+  { label: "Ficheros",      href: "/files",          icon: FileText,  disabled: true },
+  { label: "Estadísticas",  href: "/stats",          icon: BarChart3, disabled: true },
 ];
 
 const bottomItems = [
-  {
-    label: "Configuración",
-    href: "/settings",
-    icon: Settings,
-    disabled: true,
-  },
-  {
-    label: "Ayuda",
-    href: "/help",
-    icon: HelpCircle,
-    disabled: true,
-  },
+  { label: "Configuración", href: "/settings", icon: Settings,    disabled: true },
+  { label: "Ayuda",         href: "/help",     icon: HelpCircle,  disabled: true },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
 
-  const isActive = (href: string) => {
-    if (href === "/dashboard") return pathname === "/dashboard";
-    return pathname.startsWith(href);
-  };
+  const isActive = (href: string) =>
+    href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r border-[#E5E7EB] bg-white">
+    <aside
+      className="flex h-screen w-[220px] shrink-0 flex-col bg-white"
+      style={{ boxShadow: "1px 0 0 #E5E7EB" }}
+    >
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 border-b border-[#E5E7EB] px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-energy">
-          <Zap className="h-4 w-4 text-energy-foreground" />
+      <div className="flex h-12 items-center gap-2.5 px-4">
+        <div className="flex h-6 w-6 items-center justify-center rounded-[5px] bg-[#0A0A0A]">
+          <Zap className="h-3.5 w-3.5 text-white" />
         </div>
-        <div>
-          <p className="text-sm font-bold leading-none text-[#1A1A1A]">
-            Repartio
-          </p>
-          <p className="text-xs text-[#6B7280]">Autoconsumo colectivo</p>
-        </div>
+        <span className="text-sm font-semibold text-[#0A0A0A]">Repartio</span>
       </div>
 
-      {/* Navegación principal */}
-      <nav className="flex-1 space-y-0.5 p-3">
+      {/* Nav principal */}
+      <nav className="flex-1 px-2 py-2 space-y-0.5">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
@@ -87,14 +55,10 @@ export function Sidebar() {
             return (
               <div
                 key={item.href}
-                className="flex cursor-not-allowed items-center gap-3 rounded-md px-3 py-2 text-sm text-[#9CA3AF]"
-                title="Próximamente"
+                className="flex cursor-not-allowed items-center gap-2.5 rounded-md px-3 py-2 text-sm text-[#9CA3AF]"
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4 shrink-0" />
                 <span>{item.label}</span>
-                <span className="ml-auto text-[10px] font-medium uppercase tracking-wider text-[#D1D5DB]">
-                  Pronto
-                </span>
               </div>
             );
           }
@@ -104,16 +68,12 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "relative flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors duration-150",
                 active
-                  ? "bg-[#FF2D8D10] text-[#FF2D8D] font-medium"
-                  : "text-[#4B5563] hover:bg-[#F9FAFB] hover:text-[#1A1A1A]"
+                  ? "bg-[#F3F4F6] text-[#0A0A0A] font-medium"
+                  : "text-[#6B7280] hover:bg-[#F9FAFB] hover:text-[#0A0A0A]"
               )}
             >
-              {/* Borde izquierdo fucsia en ítem activo */}
-              {active && (
-                <span className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-[#FF2D8D]" />
-              )}
               <Icon className="h-4 w-4 shrink-0" />
               <span>{item.label}</span>
             </Link>
@@ -121,36 +81,31 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Separador */}
-      <div className="mx-3 border-t border-[#E5E7EB]" />
-
-      {/* Navegación inferior */}
-      <nav className="space-y-0.5 p-3">
+      {/* Bottom nav */}
+      <div className="border-t border-[#F3F4F6] px-2 py-2 space-y-0.5">
         {bottomItems.map((item) => {
           const Icon = item.icon;
           return (
             <div
               key={item.href}
-              className="flex cursor-not-allowed items-center gap-3 rounded-md px-3 py-2 text-sm text-[#9CA3AF]"
-              title="Próximamente"
+              className="flex cursor-not-allowed items-center gap-2.5 rounded-md px-3 py-2 text-sm text-[#9CA3AF]"
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-4 w-4 shrink-0" />
               <span>{item.label}</span>
             </div>
           );
         })}
 
-        {/* Cerrar sesión */}
         <form action="/api/demo/signout" method="POST">
           <button
             type="submit"
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-[#4B5563] transition-colors hover:bg-[#F9FAFB] hover:text-[#EF4444]"
+            className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-[#6B7280] transition-colors duration-150 hover:bg-[#F9FAFB] hover:text-[#DC2626]"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-4 w-4 shrink-0" />
             <span>Cerrar sesión</span>
           </button>
         </form>
-      </nav>
+      </div>
     </aside>
   );
 }

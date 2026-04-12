@@ -3,16 +3,22 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils/cn";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors",
   {
     variants: {
       variant: {
-        default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-        secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        success: "border-transparent bg-success text-success-foreground hover:bg-success/80",
-        energy: "border-transparent bg-energy text-energy-foreground hover:bg-energy/80",
-        outline: "text-foreground",
+        /* Validado / activo */
+        success:  "bg-[#ECFDF5] text-[#059669]",
+        /* Borrador / pendiente */
+        warning:  "bg-[#FEF9C3] text-[#A16207]",
+        /* Error / baja */
+        error:    "bg-[#FEF2F2] text-[#DC2626]",
+        /* Neutro */
+        default:  "bg-[#F3F4F6] text-[#6B7280]",
+        outline:  "border border-[#E5E7EB] text-[#6B7280]",
+        /* Alias para compatibilidad */
+        secondary: "bg-[#F3F4F6] text-[#6B7280]",
+        destructive: "bg-[#FEF2F2] text-[#DC2626]",
       },
     },
     defaultVariants: {
@@ -26,7 +32,9 @@ export interface BadgeProps
     VariantProps<typeof badgeVariants> {}
 
 function Badge({ className, variant, ...props }: BadgeProps) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
+  return (
+    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+  );
 }
 
 export { Badge, badgeVariants };

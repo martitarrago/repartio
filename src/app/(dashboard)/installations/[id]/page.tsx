@@ -95,10 +95,10 @@ async function getInstalacion(id: string): Promise<{
 // ─── Badge de estado ──────────────────────────────────────────────────────────
 
 const ESTADO_BADGE = {
-  BORRADOR: { label: "Borrador", variant: "secondary" as const },
-  ACTIVA: { label: "Activa", variant: "default" as const },
-  SUSPENDIDA: { label: "Suspendida", variant: "outline" as const },
-  BAJA: { label: "Baja", variant: "destructive" as const },
+  BORRADOR:   { label: "Borrador",   variant: "warning"  as const },
+  ACTIVA:     { label: "Activa",     variant: "success"  as const },
+  SUSPENDIDA: { label: "Suspendida", variant: "warning"  as const },
+  BAJA:       { label: "Baja",       variant: "error"    as const },
 };
 
 const MODALIDAD_LABEL: Record<string, string> = {
@@ -138,70 +138,56 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
 
   return (
     <div className="flex flex-col h-full">
-      <Header
-        titulo={instalacion.nombre}
-        subtitulo={`CAU: ${instalacion.cau} · Año ${instalacion.anio}`}
-        acciones={
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline" size="sm">
-              <Link href="/dashboard">
-                <ChevronLeft className="mr-1.5 h-4 w-4" />
-                Volver
-              </Link>
-            </Button>
-          </div>
-        }
-      />
+      <Header breadcrumb={instalacion.nombre} />
 
       {/* Barra de info rápida */}
-      <div className="border-b border-border bg-muted/30 px-6 py-3">
-        <div className="flex flex-wrap items-center gap-4 text-sm">
-          <Badge variant={estadoBadge.variant}>{estadoBadge.label}</Badge>
-          <span className="text-muted-foreground">
-            <span className="font-medium text-foreground">Modalidad:</span>{" "}
-            {MODALIDAD_LABEL[instalacion.modalidad]}
-          </span>
-          <span className="text-muted-foreground">
-            <span className="font-medium text-foreground">Tecnología:</span>{" "}
-            {TECNOLOGIA_LABEL[instalacion.tecnologia]}
-          </span>
-          {instalacion.potenciaKw && (
-            <span className="text-muted-foreground">
-              <span className="font-medium text-foreground">Potencia:</span>{" "}
-              {instalacion.potenciaKw} kW
+      <div className="border-b border-[#E5E7EB] bg-white px-6 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            <Badge variant={estadoBadge.variant}>{estadoBadge.label}</Badge>
+            <span className="text-[#9CA3AF]">
+              <span className="font-medium text-[#374151]">Modalidad:</span>{" "}
+              {MODALIDAD_LABEL[instalacion.modalidad]}
             </span>
-          )}
-          <span className="text-muted-foreground">
-            <span className="font-medium text-foreground">Participantes:</span>{" "}
-            {instalacion.totalParticipantes}
-          </span>
-          {instalacion.tieneConjuntoValidado && (
-            <span className="flex items-center gap-1 text-green-600">
-              <Zap className="h-3.5 w-3.5" />
-              Reparto validado
+            <span className="text-[#9CA3AF]">
+              <span className="font-medium text-[#374151]">Tecnología:</span>{" "}
+              {TECNOLOGIA_LABEL[instalacion.tecnologia]}
             </span>
-          )}
+            {instalacion.potenciaKw && (
+              <span className="text-[#9CA3AF]">
+                <span className="font-medium text-[#374151]">Potencia:</span>{" "}
+                {instalacion.potenciaKw} kW
+              </span>
+            )}
+            <span className="text-[#9CA3AF]">
+              <span className="font-medium text-[#374151]">Participantes:</span>{" "}
+              {instalacion.totalParticipantes}
+            </span>
+            {instalacion.tieneConjuntoValidado && (
+              <span className="text-[#059669]">Reparto validado</span>
+            )}
+          </div>
+          <Button asChild variant="secondary" size="sm">
+            <Link href="/dashboard">
+              <ChevronLeft className="h-3.5 w-3.5" />
+              Volver
+            </Link>
+          </Button>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex-1 overflow-y-auto">
         <Tabs defaultValue={tabActiva} className="flex flex-col h-full">
-          <div className="border-b border-border px-6 pt-2">
+          <div className="border-b border-[#E5E7EB] bg-white px-6 pt-1">
             <TabsList className="h-auto gap-0 rounded-none bg-transparent p-0">
-              {[
-                { value: "detalles", label: "Detalles", icon: Pencil },
-                { value: "participantes", label: "Participantes", icon: null },
-                { value: "coeficientes", label: "Coeficientes", icon: null },
-                { value: "historial", label: "Historial", icon: FileText },
-                { value: "descargas", label: "Descargas", icon: Download },
-              ].map(({ value, label }) => (
+              {["detalles", "participantes", "coeficientes", "historial", "descargas"].map((value) => (
                 <TabsTrigger
                   key={value}
                   value={value}
-                  className="relative rounded-none border-b-2 border-transparent px-4 py-3 text-sm font-medium text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                  className="relative rounded-none border-b-2 border-transparent px-4 py-2.5 text-xs font-medium capitalize text-[#6B7280] transition-colors duration-150 data-[state=active]:border-[#FF2D8D] data-[state=active]:text-[#0A0A0A] data-[state=active]:shadow-none"
                 >
-                  {label}
+                  {value.charAt(0).toUpperCase() + value.slice(1)}
                 </TabsTrigger>
               ))}
             </TabsList>

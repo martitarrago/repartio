@@ -1,7 +1,6 @@
 "use client";
 
-import { Bell, ChevronDown, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,9 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
-  titulo?: string;
-  subtitulo?: string;
-  acciones?: React.ReactNode;
+  breadcrumb?: string;
   usuario?: {
     nombre: string;
     email: string;
@@ -23,9 +20,7 @@ interface HeaderProps {
 }
 
 export function Header({
-  titulo,
-  subtitulo,
-  acciones,
+  breadcrumb,
   usuario = {
     nombre: "Usuario",
     email: "usuario@ejemplo.com",
@@ -33,58 +28,43 @@ export function Header({
   },
 }: HeaderProps) {
   return (
-    <header className="flex h-16 items-center justify-between border-b border-[#E5E7EB] bg-white px-6">
-      {/* Título de página */}
-      <div>
-        {titulo && (
-          <h1 className="text-lg font-semibold leading-none text-[#1A1A1A]">
-            {titulo}
-          </h1>
-        )}
-        {subtitulo && (
-          <p className="mt-0.5 text-sm text-[#6B7280]">{subtitulo}</p>
-        )}
-      </div>
+    <header
+      className="flex h-12 items-center justify-between bg-white px-6"
+      style={{ boxShadow: "0 1px 0 #E5E7EB" }}
+    >
+      {/* Breadcrumb */}
+      <span className="text-sm font-medium text-[#0A0A0A]">
+        {breadcrumb ?? ""}
+      </span>
 
-      {/* Acciones + Usuario */}
-      <div className="flex items-center gap-3">
-        {acciones}
-
-        <Button variant="ghost" size="icon" className="relative text-[#6B7280] hover:text-[#1A1A1A]" disabled>
-          <Bell className="h-4 w-4" />
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#FF2D8D]" />
-        </Button>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="gap-2 px-2 text-[#4B5563] hover:text-[#1A1A1A]">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-energy text-energy-foreground">
-                <User className="h-3.5 w-3.5" />
-              </div>
-              <div className="hidden text-left sm:block">
-                <p className="text-sm font-medium leading-none text-[#1A1A1A]">{usuario.nombre}</p>
-                <p className="text-xs text-[#6B7280]">{usuario.organizacion}</p>
-              </div>
-              <ChevronDown className="h-3.5 w-3.5 text-[#9CA3AF]" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 border-[#E5E7EB] bg-white shadow-sm">
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium text-[#1A1A1A]">{usuario.nombre}</p>
-                <p className="text-xs text-[#6B7280]">{usuario.email}</p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-[#E5E7EB]" />
-            <DropdownMenuItem disabled className="text-[#9CA3AF]">Perfil</DropdownMenuItem>
-            <DropdownMenuItem disabled className="text-[#9CA3AF]">Organización</DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-[#E5E7EB]" />
-            <DropdownMenuItem className="text-[#EF4444] focus:text-[#EF4444]">
-              Cerrar sesión
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      {/* Avatar */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="flex items-center gap-2 rounded-md px-2 py-1 text-sm text-[#6B7280] transition-colors duration-150 hover:bg-[#F9FAFB] hover:text-[#0A0A0A] focus:outline-none">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#F3F4F6] text-[#6B7280]">
+              <User className="h-3.5 w-3.5" />
+            </div>
+            <span className="hidden text-xs font-medium sm:block">{usuario.nombre}</span>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-52 rounded-lg border border-[#E5E7EB] bg-white p-1 shadow-sm">
+          <DropdownMenuLabel className="px-2 py-1.5 font-normal">
+            <p className="text-sm font-medium text-[#0A0A0A]">{usuario.nombre}</p>
+            <p className="text-xs text-[#9CA3AF]">{usuario.email}</p>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className="bg-[#F3F4F6]" />
+          <DropdownMenuItem disabled className="rounded-md px-2 py-1.5 text-xs text-[#9CA3AF]">
+            Perfil
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled className="rounded-md px-2 py-1.5 text-xs text-[#9CA3AF]">
+            Organización
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="bg-[#F3F4F6]" />
+          <DropdownMenuItem className="rounded-md px-2 py-1.5 text-xs text-[#DC2626] focus:text-[#DC2626]">
+            Cerrar sesión
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
   );
 }
