@@ -217,11 +217,11 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
   const tabActiva = tab ?? "detalles";
 
   return (
-    <div className="mx-auto w-full max-w-[960px] px-8 py-6 space-y-6">
+    <div className="mx-auto w-full max-w-[960px] px-8 py-6 space-y-6 animate-fade-in">
       {/* Back link */}
       <Link
         href="/dashboard"
-        className="inline-flex items-center gap-1.5 text-sm text-[#71717A] hover:text-[#18181B] transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         Volver a instalaciones
@@ -229,29 +229,29 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
 
       {/* Title + meta */}
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold text-[#18181B]">
+        <h1 className="text-2xl font-semibold font-heading text-foreground">
           {instalacion.nombre}
         </h1>
-        <div className="flex flex-wrap items-center gap-3 text-sm text-[#71717A]">
-          <span className="font-mono text-xs text-[#A1A1AA]">{instalacion.cau}</span>
+        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          <span className="font-mono text-xs text-muted-foreground/70">{instalacion.cau}</span>
           <span>·</span>
           <span>{instalacion.anio}</span>
           <Badge variant={estadoBadge.variant}>{estadoBadge.label}</Badge>
           <span>·</span>
           <span>
-            <span className="font-semibold text-[#18181B]">{instalacion.totalParticipantes}</span> participantes
+            <span className="font-semibold text-primary">{instalacion.totalParticipantes}</span> participantes
           </span>
         </div>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue={tabActiva} className="space-y-0">
-        <TabsList className="h-auto gap-0 rounded-none bg-transparent p-0 border-b border-[#F4F4F5]">
+        <TabsList className="h-auto gap-0 rounded-none bg-transparent p-0 border-b border-border">
           {Object.entries(TAB_LABELS).map(([value, label]) => (
             <TabsTrigger
               key={value}
               value={value}
-              className="relative rounded-none border-b-2 border-transparent px-4 py-2.5 text-sm font-normal text-[#A1A1AA] transition-all duration-150 data-[state=active]:border-[#18181B] data-[state=active]:text-[#18181B] data-[state=active]:font-medium data-[state=active]:shadow-none"
+              className="relative rounded-none border-b-2 border-transparent px-4 py-2.5 text-sm font-normal text-muted-foreground transition-all duration-150 data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:shadow-none"
             >
               {label}
             </TabsTrigger>
