@@ -43,7 +43,6 @@ export const navGroups: NavGroup[] = [
         url: "/chat",
         icon: MessageSquare,
         isActive: false,
-        disabled: true,
         items: [],
       },
     ],

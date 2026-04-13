@@ -113,22 +113,49 @@ function useTypewriter(texts: string[], typingSpeed = 80, pauseMs = 3500) {
   return display;
 }
 
+// Simple markdown renderer — handles **bold**, bullet lists, line breaks
+function MdText({ text, className }: { text: string; className?: string }) {
+  const lines = text.split("\n");
+  return (
+    <div className={className}>
+      {lines.map((line, i) => {
+        // Bullet list
+        const isBullet = /^[-*•]\s/.test(line);
+        const content = line.replace(/^[-*•]\s/, "");
+        // Bold: **text**
+        const parts = content.split(/(\*\*[^*]+\*\*)/g).map((part, j) =>
+          part.startsWith("**") && part.endsWith("**")
+            ? <strong key={j}>{part.slice(2, -2)}</strong>
+            : part
+        );
+        if (isBullet) {
+          return (
+            <div key={i} className="flex gap-1.5 mt-0.5">
+              <span className="flex-shrink-0 mt-[3px]">·</span>
+              <span>{parts}</span>
+            </div>
+          );
+        }
+        return line.trim() === "" ? (
+          <div key={i} className="h-2" />
+        ) : (
+          <div key={i} className="mt-0.5 first:mt-0">{parts}</div>
+        );
+      })}
+    </div>
+  );
+}
+
 function ChatPanel({
   messages,
   streaming,
   streamingText,
-  input,
-  onInputChange,
-  onSend,
   onClose,
   noApiKey,
 }: {
   messages: ChatMessage[];
   streaming: boolean;
   streamingText: string;
-  input: string;
-  onInputChange: (v: string) => void;
-  onSend: () => void;
   onClose: () => void;
   noApiKey: boolean;
 }) {
@@ -160,7 +187,7 @@ function ChatPanel({
       )}
 
       {/* Messages */}
-      <div className="h-80 overflow-y-auto p-4 space-y-3">
+      <div className="h-72 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && !streaming && (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <Bot className="w-10 h-10 text-muted-foreground/30 mb-2" />
@@ -170,7 +197,7 @@ function ChatPanel({
         )}
         {messages.map((m, i) => (
           <div key={i} className={`flex gap-2.5 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
               m.role === "user" ? "bg-primary/20" : "bg-muted"
             }`}>
               {m.role === "user" ? <User className="w-3.5 h-3.5 text-primary" /> : <Bot className="w-3.5 h-3.5 text-muted-foreground" />}
@@ -180,41 +207,25 @@ function ChatPanel({
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted text-foreground"
             }`}>
-              {m.content}
+              {m.role === "assistant"
+                ? <MdText text={m.content} />
+                : m.content}
             </div>
           </div>
         ))}
         {streaming && (
           <div className="flex gap-2.5">
-            <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+            <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0 mt-0.5">
               <Bot className="w-3.5 h-3.5 text-muted-foreground" />
             </div>
             <div className="max-w-[80%] px-3 py-2 rounded-xl text-xs leading-relaxed bg-muted text-foreground">
-              {streamingText || <span className="animate-pulse">···</span>}
+              {streamingText
+                ? <MdText text={streamingText} />
+                : <span className="animate-pulse">···</span>}
             </div>
           </div>
         )}
         <div ref={bottomRef} />
-      </div>
-
-      {/* Input */}
-      <div className="px-4 py-3 border-t border-border flex gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={e => onInputChange(e.target.value)}
-          onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(); } }}
-          placeholder="Escribe tu pregunta..."
-          className="flex-1 bg-muted rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/20"
-          disabled={streaming}
-        />
-        <button
-          onClick={onSend}
-          disabled={streaming || !input.trim()}
-          className="p-2 rounded-lg bg-primary text-primary-foreground disabled:opacity-40 hover:bg-primary/90 transition-colors"
-        >
-          <Send className="w-4 h-4" />
-        </button>
       </div>
     </div>
   );
@@ -436,9 +447,6 @@ export default function DashboardPage() {
             messages={chatMessages}
             streaming={streaming}
             streamingText={streamingText}
-            input={chatInput}
-            onInputChange={setChatInput}
-            onSend={handleChatSend}
             onClose={() => setChatOpen(false)}
             noApiKey={noApiKey}
           />
@@ -447,15 +455,14 @@ export default function DashboardPage() {
 
       {/* KPIs */}
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[1,2,3,4].map(i => <div key={i} className="h-24 rounded-xl bg-muted/40 animate-pulse" />)}
+        <div className="grid grid-cols-3 gap-4">
+          {[1,2,3].map(i => <div key={i} className="h-24 rounded-xl bg-muted/40 animate-pulse" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <KpiCard title="Comunidades" value={communities.length} icon={Building2} delay={0} />
           <KpiCard title="Participantes" value={totalParticipants} icon={Users} delay={100} />
           <KpiCard title="Potencia total" value={totalPower} suffix=" kWp" icon={Zap} delay={200} />
-          <KpiCard title="Ahorro estimado" value={10160} prefix="€" icon={Sparkles} trend="+12%" delay={300} />
         </div>
       )}
 

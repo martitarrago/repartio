@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { FileText, Download, CheckCircle2, AlertTriangle, Loader2, X, Code2, FileCheck, Clock } from "lucide-react";
+import { FileText, Download, CheckCircle2, AlertTriangle, Loader2, X, Code2, FileCheck, Clock, FileSignature } from "lucide-react";
 import { type Community } from "@/lib/types/community";
+import { generateAgreementHTML } from "@/lib/agreement-generator";
 
 interface TxtGeneratorTabProProps {
   community: Community;
@@ -28,6 +29,16 @@ interface HistorialEntry {
 
 function downloadTXT(contenido: string, nombreFichero: string) {
   const blob = new Blob([contenido], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nombreFichero;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function downloadHTML(html: string, nombreFichero: string) {
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -133,18 +144,31 @@ export function TxtGeneratorTabPro({ community, communityId, conjuntoId }: TxtGe
               <p className="mt-2 text-xs text-destructive">{error}</p>
             )}
           </div>
-          <button
-            onClick={handleGenerate}
-            disabled={!isValid || generating}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl mint-gradient text-white font-medium text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-          >
-            {generating ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <FileText className="w-4 h-4" />
-            )}
-            {generating ? "Generando..." : "Generar TXT"}
-          </button>
+          <div className="flex flex-col gap-2 flex-shrink-0">
+            <button
+              onClick={() => downloadHTML(
+                generateAgreementHTML(community),
+                `acuerdo_${community.cau}_${new Date().toISOString().slice(0,10)}.html`
+              )}
+              disabled={activeParticipants.length === 0}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-card text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <FileSignature className="w-4 h-4" />
+              Acuerdo de reparto
+            </button>
+            <button
+              onClick={handleGenerate}
+              disabled={!isValid || generating}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl mint-gradient text-white font-medium text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {generating ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileText className="w-4 h-4" />
+              )}
+              {generating ? "Generando..." : "Generar TXT"}
+            </button>
+          </div>
         </div>
       </div>
 
