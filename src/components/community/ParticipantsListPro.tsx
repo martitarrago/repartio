@@ -312,18 +312,30 @@ export function ParticipantsListPro({ participants, onParticipantsChange, commun
     onParticipantsChange(participants.map(p => p.id === updated.id ? updated : p));
   };
 
-  const toggleExit = (id: string) => {
+  const toggleExit = async (id: string) => {
+    const p = participants.find(pt => pt.id === id);
+    if (!p) return;
+    const newStatus = p.status === "exited" ? "active" : "exited";
+    const estadoParticipante = newStatus === "exited" ? "BAJA" : "ACTIVO";
+
+    // Optimistic update
     onParticipantsChange(
-      participants.map(p =>
-        p.id === id
-          ? {
-              ...p,
-              status: (p.status === "exited" ? "active" : "exited") as Participant["status"],
-              exitDate: p.status !== "exited" ? new Date().toISOString().slice(0, 10) : undefined,
-            }
-          : p
+      participants.map(pt =>
+        pt.id === id
+          ? { ...pt, status: newStatus as Participant["status"], exitDate: newStatus === "exited" ? new Date().toISOString().slice(0, 10) : undefined }
+          : pt
       )
     );
+
+    if (communityId) {
+      try {
+        await fetch(`/api/communities/${communityId}/participants/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ estadoParticipante }),
+        });
+      } catch {}
+    }
   };
 
   return (
