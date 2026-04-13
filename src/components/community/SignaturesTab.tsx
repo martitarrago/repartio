@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Send, CheckCircle2, Clock, PenLine, XCircle, Mail, Loader2, Wifi } from "lucide-react";
+import { Send, CheckCircle2, Clock, PenLine, XCircle, Mail, Loader2, Wifi, Copy, Link, Check } from "lucide-react";
 import { type Community } from "@/lib/types/community";
 import { supabase } from "@/lib/supabase";
 
@@ -44,6 +44,8 @@ export function SignaturesTab({ community, communityId }: SignaturesTabProps) {
   const [sendingSignatures, setSendingSignatures] = useState(false);
   const [sendingReminder, setSendingReminder] = useState(false);
   const [realtimeConnected, setRealtimeConnected] = useState(false);
+  const [signatureLinks, setSignatureLinks] = useState<{ nombre: string; email: string | null; link: string; emailSent: boolean }[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   // Supabase Realtime — suscribirse a cambios en la tabla Participante
@@ -104,19 +106,24 @@ export function SignaturesTab({ community, communityId }: SignaturesTabProps) {
     if (!instalId) return;
 
     setSendingSignatures(true);
+    setSignatureLinks([]);
     try {
-      const res = await fetch(`/api/communities/${instalId}/sign`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ documentUrl: null }), // documentUrl se pasará cuando haya Storage
-      });
+      const res = await fetch(`/api/communities/${instalId}/sign`, { method: "POST" });
       const data = await res.json();
-      if (!res.ok && res.status !== 503) {
+      if (res.ok && data.links) {
+        setSignatureLinks(data.links);
+      } else {
         console.error("Error solicitando firmas:", data);
       }
     } finally {
       setSendingSignatures(false);
     }
+  };
+
+  const handleCopyLink = (link: string, nombre: string) => {
+    navigator.clipboard.writeText(link);
+    setCopiedId(nombre);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const handleSimulateSign = (id: string) => {
@@ -224,6 +231,44 @@ export function SignaturesTab({ community, communityId }: SignaturesTabProps) {
           })}
         </div>
       </div>
+
+      {/* Signature links panel */}
+      {signatureLinks.length > 0 && (
+        <div className="glass-card rounded-2xl p-5 space-y-3 border border-primary/20 bg-primary/5 animate-fade-in">
+          <div className="flex items-center gap-2">
+            <Link className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">
+              Enlaces de firma generados
+            </h3>
+            <span className="text-xs text-muted-foreground">
+              — compártelos por WhatsApp o email
+            </span>
+          </div>
+          <div className="space-y-2">
+            {signatureLinks.map((item) => (
+              <div key={item.nombre} className="flex items-center gap-3 bg-background rounded-xl px-3 py-2.5">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-foreground">{item.nombre}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{item.link}</p>
+                </div>
+                {item.emailSent && (
+                  <span className="text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded-full flex-shrink-0">Email enviado</span>
+                )}
+                <button
+                  onClick={() => handleCopyLink(item.link, item.nombre)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground text-[10px] font-medium hover:bg-primary/90 transition-colors flex-shrink-0"
+                >
+                  {copiedId === item.nombre ? (
+                    <><Check className="w-3 h-3" /> Copiado</>
+                  ) : (
+                    <><Copy className="w-3 h-3" /> Copiar</>
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Signers list */}
       <div className="space-y-2">

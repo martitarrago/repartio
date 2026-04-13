@@ -1,51 +1,22 @@
 /**
- * Signaturit integration — envío de solicitudes de firma eIDAS.
- *
- * Para activarlo:
- * 1. Crea una cuenta en https://app.signaturit.com
- * 2. Añade SIGNATURIT_API_KEY en .env
- * 3. Sube el documento PDF del acuerdo al bucket de Supabase Storage
- *
- * Mientras SIGNATURIT_API_KEY está vacía, el endpoint devuelve 503
- * con instrucciones. El resto del código está completamente funcional.
+ * POST /api/communities/[id]/sign
+ * Genera tokens únicos de firma para cada participante pendiente.
+ * Devuelve los enlaces para que el admin los comparta (WhatsApp, email manual, etc.)
+ * Si RESEND_API_KEY está configurada, envía emails automáticamente.
  */
 
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { sendSignatureEmail } from "@/lib/email";
 
-const SIGNATURIT_BASE = process.env.SIGNATURIT_SANDBOX === "true"
-  ? "https://api.sandbox.signaturit.com/v1"
-  : "https://api.signaturit.com/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+const TOKEN_EXPIRY_DAYS = 30;
 
-async function signaturitRequest(path: string, body: any) {
-  const res = await fetch(`${SIGNATURIT_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.SIGNATURIT_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`Signaturit error: ${res.status} ${await res.text()}`);
-  return res.json();
-}
-
-// POST /api/communities/[id]/sign — envía solicitud de firma a todos los participantes pendientes
 export async function POST(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!process.env.SIGNATURIT_API_KEY) {
-    return NextResponse.json(
-      {
-        error: "SIGNATURIT_API_KEY no configurada.",
-        instructions: "Crea una cuenta en https://app.signaturit.com y añade la API key en .env",
-      },
-      { status: 503 }
-    );
-  }
-
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -66,47 +37,59 @@ export async function POST(
     return NextResponse.json({ error: "Comunidad no encontrada" }, { status: 404 });
   }
 
-  const body = await req.json().catch(() => ({}));
-  const documentUrl: string | undefined = body.documentUrl;
-
-  if (!documentUrl) {
-    return NextResponse.json({ error: "documentUrl requerida" }, { status: 400 });
+  if (instalacion.participantes.length === 0) {
+    return NextResponse.json({ error: "No hay participantes pendientes de firma" }, { status: 400 });
   }
 
-  // Build signers for Signaturit
-  const signers = instalacion.participantes.map(p => ({
-    email: p.email ?? "",
-    name: p.nombre,
-    // Signaturit supports phone OTP — optional
-  })).filter(s => s.email);
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + TOKEN_EXPIRY_DAYS);
 
-  if (signers.length === 0) {
-    return NextResponse.json({ error: "No hay participantes con email pendientes de firma" }, { status: 400 });
-  }
+  const results = await Promise.all(
+    instalacion.participantes.map(async (p) => {
+      // Reusar token existente no usado si aún no ha expirado
+      const existing = await prisma.firmaToken.findFirst({
+        where: {
+          participanteId: p.id,
+          usadoEn: null,
+          expiresAt: { gt: new Date() },
+        },
+      });
 
-  try {
-    // Send signature request
-    const signatureRequest = await signaturitRequest("/signatures.json", {
-      documents: [{ url: documentUrl, name: `Acuerdo_${instalacion.nombre}.pdf` }],
-      recipients: signers,
-      subject: `Acuerdo de reparto — ${instalacion.nombre}`,
-      body: `Por favor, firme el acuerdo de reparto de energía solar de la comunidad ${instalacion.nombre}.`,
-      mandatory_pages: [],
-    });
+      const firmaToken = existing ?? await prisma.firmaToken.create({
+        data: {
+          participanteId: p.id,
+          instalacionId,
+          expiresAt,
+        },
+      });
 
-    // Save signaturit request ID to each participant
-    await prisma.participante.updateMany({
-      where: { instalacionId, activo: true, estadoFirma: "PENDIENTE" },
-      data: { signaturitRequestId: signatureRequest.id },
-    });
+      const link = `${BASE_URL}/sign/${firmaToken.token}`;
 
-    return NextResponse.json({
-      ok: true,
-      signaturitRequestId: signatureRequest.id,
-      signerCount: signers.length,
-    });
-  } catch (e: any) {
-    console.error("Signaturit error:", e);
-    return NextResponse.json({ error: e.message }, { status: 500 });
-  }
+      // Enviar email si hay servicio configurado
+      let emailSent = false;
+      if (p.email) {
+        emailSent = await sendSignatureEmail({
+          to: p.email,
+          participantName: p.nombre,
+          communityName: instalacion.nombre,
+          link,
+        });
+      }
+
+      return {
+        participanteId: p.id,
+        nombre: p.nombre,
+        email: p.email,
+        link,
+        emailSent,
+        token: firmaToken.token,
+      };
+    })
+  );
+
+  return NextResponse.json({
+    ok: true,
+    count: results.length,
+    links: results,
+  });
 }

@@ -198,6 +198,7 @@ model Participante {
 
   instalacion    Instalacion           @relation(fields: [instalacionId], references: [id], onDelete: Cascade)
   entradas       EntradaCoeficiente[]
+  firmaTokens    FirmaToken[]
 
   @@unique([cups, instalacionId])
   @@index([instalacionId, orden])
@@ -308,4 +309,25 @@ model HistorialFichero {
 
   @@index([conjuntoId, generadoEn])
   @@map("historial_ficheros")
+}
+
+// ─────────────────────────────────────────────
+// FIRMA TOKEN (enlace único para firma por email)
+// ─────────────────────────────────────────────
+
+model FirmaToken {
+  id             String    @id @default(cuid())
+  token          String    @unique @default(cuid())
+  participanteId String
+  instalacionId  String
+  creadoEn       DateTime  @default(now())
+  expiresAt      DateTime
+  usadoEn        DateTime?
+  ipAddress      String?
+
+  participante   Participante @relation(fields: [participanteId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([participanteId])
+  @@map("firma_tokens")
 }
