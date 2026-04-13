@@ -1,4 +1,4 @@
-// Core domain types for SolShare Pro communities (mock-data layer)
+// Core domain types for Repartio communities
 
 export type ProjectPhase = "configuracion" | "vecinos" | "reparto" | "firmas" | "listo" | "enviado" | "activo";
 

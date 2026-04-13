@@ -72,7 +72,7 @@ export async function POST(req: Request) {
     const systemPrompt = await buildSystemPrompt(organizacionId);
 
     const stream = await client.messages.stream({
-      model: "claude-opus-4-6",
+      model: "claude-sonnet-4-5-20241022",
       max_tokens: 1024,
       system: systemPrompt,
       messages: validMessages.map((m: any) => ({

@@ -100,7 +100,8 @@ export async function POST(
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const storagePath = `${organizacionId}/${instalacionId}/${Date.now()}_${file.name}`;
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").replace(/\.{2,}/g, "_");
+    const storagePath = `${organizacionId}/${instalacionId}/${Date.now()}_${safeName}`;
 
     const supabase = createServiceClient();
     const { error: uploadError } = await supabase.storage

@@ -63,6 +63,10 @@ export async function PATCH(
   if (d.signedDocumentUrl !== undefined) data.signedDocumentUrl = d.signedDocumentUrl;
 
   try {
+    // Verificar que el participante pertenece a esta instalación
+    const existing = await prisma.participante.findFirst({ where: { id: pid, instalacionId } });
+    if (!existing) return NextResponse.json({ message: "Participante no encontrado" }, { status: 404 });
+
     const participante = await prisma.participante.update({ where: { id: pid }, data });
     return NextResponse.json({ id: participante.id });
   } catch (e) {
@@ -85,6 +89,10 @@ export async function DELETE(
   if (!await verificarAcceso(instalacionId, organizacionId)) {
     return NextResponse.json({ message: "Comunidad no encontrada" }, { status: 404 });
   }
+
+  // Verificar que el participante pertenece a esta instalación
+  const existing = await prisma.participante.findFirst({ where: { id: pid, instalacionId } });
+  if (!existing) return NextResponse.json({ message: "Participante no encontrado" }, { status: 404 });
 
   // Baja lógica — no borrar para mantener historial
   await prisma.participante.update({

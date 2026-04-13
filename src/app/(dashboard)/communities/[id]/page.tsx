@@ -33,6 +33,7 @@ export default function CommunityDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveResult, setSaveResult] = useState<"ok" | "error" | null>(null);
   const [activeStep, setActiveStep] = useState<StepId>("detalles");
   const [dismissedBanner, setDismissedBanner] = useState(false);
   const [conjuntoId, setConjuntoId] = useState<string | undefined>(undefined);
@@ -87,17 +88,24 @@ export default function CommunityDetailPage() {
   // Guardar cambios en detalles
   const handleSaveDetalles = useCallback(async () => {
     setSaving(true);
-    await fetch(`/api/communities/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name, address, city, postalCode, cif: cif || undefined, admin: admin || undefined,
-        cau, power: parseFloat(power) || undefined,
-        modality, connectionType, proximity,
-        gestorEnabled, gestorName: gestorName || undefined, gestorNif: gestorNif || undefined,
-      }),
-    });
+    setSaveResult(null);
+    try {
+      const res = await fetch(`/api/communities/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name, address, city, postalCode, cif: cif || undefined, admin: admin || undefined,
+          cau, power: parseFloat(power) || undefined,
+          modality, connectionType, proximity,
+          gestorEnabled, gestorName: gestorName || undefined, gestorNif: gestorNif || undefined,
+        }),
+      });
+      setSaveResult(res.ok ? "ok" : "error");
+    } catch {
+      setSaveResult("error");
+    }
     setSaving(false);
+    setTimeout(() => setSaveResult(null), 3000);
   }, [id, name, address, city, postalCode, cif, admin, cau, power, modality, connectionType, proximity, gestorEnabled, gestorName, gestorNif]);
 
   const community = useMemo((): Community => ({
@@ -316,7 +324,13 @@ export default function CommunityDetailPage() {
               onUpdate={(n, nif) => { setGestorName(n); setGestorNif(nif); }}
             />
 
-            <div className="flex justify-end">
+            <div className="flex items-center justify-end gap-3">
+              {saveResult === "ok" && (
+                <span className="text-xs text-primary flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Guardado</span>
+              )}
+              {saveResult === "error" && (
+                <span className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" /> Error al guardar</span>
+              )}
               <button
                 onClick={handleSaveDetalles}
                 disabled={saving}

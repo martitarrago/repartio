@@ -64,6 +64,7 @@ function toApiCommunity(i: any, betaMap: Record<string, number>) {
 
   return {
     id: i.id,
+    conjuntoId: null as string | null,
     name: i.nombre,
     address: i.direccion ?? "",
     city: i.municipio ?? "",
@@ -77,7 +78,7 @@ function toApiCommunity(i: any, betaMap: Record<string, number>) {
     proximity: i.tipoProximidad ?? "mismo_edificio",
     potenciaInstalada: Number(i.potenciaKw ?? 0),
     numPaneles: i.numPaneles ?? 0,
-    coeficientMode: "fixed" as const,
+    coeficientMode: "fixed" as "fixed" | "variable",
     gestorEnabled: i.gestorHabilitado,
     gestorName: i.gestorNombre ?? undefined,
     gestorNif: i.gestorNif ?? undefined,
@@ -127,6 +128,12 @@ export async function GET() {
     include: {
       participantes: { where: { activo: true }, orderBy: { orden: "asc" } },
       documentos: { select: { tipo: true } },
+      conjuntos: {
+        where: { estado: { in: ["PUBLICADO", "VALIDADO", "BORRADOR"] } },
+        orderBy: { version: "desc" },
+        take: 1,
+        select: { id: true, modo: true },
+      },
     },
     orderBy: { actualizadaEn: "desc" },
   });
@@ -134,7 +141,10 @@ export async function GET() {
   const communities = await Promise.all(
     instalaciones.map(async (i) => {
       const betaMap = await getBetaMap(i.id);
-      return toApiCommunity(i, betaMap);
+      const c = toApiCommunity(i, betaMap);
+      c.coeficientMode = i.conjuntos[0]?.modo === "VARIABLE" ? "variable" : "fixed";
+      c.conjuntoId = i.conjuntos[0]?.id ?? null;
+      return c;
     })
   );
 
