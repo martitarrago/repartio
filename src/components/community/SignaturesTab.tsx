@@ -101,11 +101,12 @@ export function SignaturesTab({ community, communityId }: SignaturesTabProps) {
   const total = signers.length;
   const progress = total > 0 ? (signed / total) * 100 : 0;
 
-  const handleRequestSignatures = async () => {
+  const handleRequestSignatures = async (isReminder = false) => {
     const instalId = communityId ?? community?.id;
     if (!instalId) return;
 
-    setSendingSignatures(true);
+    if (isReminder) setSendingReminder(true);
+    else setSendingSignatures(true);
     setSignatureLinks([]);
     try {
       const res = await fetch(`/api/communities/${instalId}/sign`, { method: "POST" });
@@ -116,7 +117,8 @@ export function SignaturesTab({ community, communityId }: SignaturesTabProps) {
         console.error("Error solicitando firmas:", data);
       }
     } finally {
-      setSendingSignatures(false);
+      if (isReminder) setSendingReminder(false);
+      else setSendingSignatures(false);
     }
   };
 
@@ -151,7 +153,7 @@ export function SignaturesTab({ community, communityId }: SignaturesTabProps) {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={handleRequestSignatures}
+              onClick={() => handleRequestSignatures()}
               disabled={sendingSignatures}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
@@ -159,9 +161,10 @@ export function SignaturesTab({ community, communityId }: SignaturesTabProps) {
               Solicitar firmas
             </button>
             <button
-              onClick={() => setSendingReminder(true)}
-              disabled={sendingReminder}
+              onClick={() => handleRequestSignatures(true)}
+              disabled={sendingReminder || sendingSignatures || pending === 0}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-medium hover:bg-secondary/80 transition-colors disabled:opacity-50"
+              title={pending === 0 ? "No hay firmas pendientes" : "Reenviar enlace de firma a pendientes"}
             >
               {sendingReminder ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               Enviar recordatorio
