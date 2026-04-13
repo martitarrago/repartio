@@ -1,5 +1,7 @@
 import {
   LayoutDashboard,
+  Users,
+  MessageSquare,
   Settings,
   type LucideIcon,
 } from "lucide-react";
@@ -23,10 +25,25 @@ export const navGroups: NavGroup[] = [
     label: "",
     items: [
       {
-        title: "Instalaciones",
+        title: "Panel de control",
         url: "/dashboard",
         icon: LayoutDashboard,
         isActive: false,
+        items: [],
+      },
+      {
+        title: "Comunidades",
+        url: "/dashboard",
+        icon: Users,
+        isActive: false,
+        items: [],
+      },
+      {
+        title: "Chat energético",
+        url: "/chat",
+        icon: MessageSquare,
+        isActive: false,
+        disabled: true,
         items: [],
       },
     ],
