@@ -33,7 +33,7 @@ export const navGroups: NavGroup[] = [
       },
       {
         title: "Comunidades",
-        url: "/dashboard",
+        url: "/communities",
         icon: Users,
         isActive: false,
         items: [],
@@ -56,7 +56,6 @@ export const navGroups: NavGroup[] = [
         url: "/settings",
         icon: Settings,
         isActive: false,
-        disabled: true,
         items: [],
       },
     ],

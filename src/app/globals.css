@@ -91,6 +91,26 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
+
+  .badge-warning {
+    background-color: hsl(38 92% 95%);
+    color: hsl(32 80% 40%);
+  }
+
+  .badge-info {
+    background-color: hsl(210 90% 95%);
+    color: hsl(210 80% 42%);
+  }
+
+  .badge-success {
+    background-color: hsl(160 60% 93%);
+    color: hsl(160 84% 30%);
+  }
+
+  .badge-active {
+    background-color: hsl(160 84% 39% / 0.1);
+    color: hsl(160 84% 32%);
+  }
 }
 
 @layer utilities {
