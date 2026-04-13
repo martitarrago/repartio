@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import {
   AlertCircle, FileCheck, Send, Zap, ChevronRight,
   Sparkles, Clock, ExternalLink, CheckCircle2,
-  Users, Building2,
+  Users, Building2, X, Bot, User,
 } from "lucide-react";
-import { mockCommunities } from "@/lib/mock-data";
 import { validateProject, validateAllocationSum, type Community } from "@/lib/types/community";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 
@@ -45,8 +44,8 @@ const PIPELINE: { id: PipelineState; label: string; icon: typeof AlertCircle; ba
   { id: "activado", label: "Activado", icon: Zap, badgeClass: "badge-active" },
 ];
 
-function buildDerivedCommunities(): DerivedCommunity[] {
-  return mockCommunities.map(c => {
+function buildDerived(communities: Community[]): DerivedCommunity[] {
+  return communities.map(c => {
     const estado = derivePipelineState(c);
     const issues = validateProject(c);
     const active = c.participants.filter(p => p.status !== "exited");
@@ -63,21 +62,18 @@ function buildDerivedCommunities(): DerivedCommunity[] {
   });
 }
 
-const ultimosMovimientos = [
-  { comunidad: "Residencial Aurora", accion: "Comunidad activa y en funcionamiento", fecha: "Hace 2 días" },
-  { comunidad: "Edificio Lumina", accion: "Pendiente de firmas de participantes", fecha: "Hace 1 día" },
-  { comunidad: "Torres del Parque", accion: "Coeficientes de reparto actualizados", fecha: "Hace 3 días" },
-  { comunidad: "Urbanización Las Encinas", accion: "Documentación lista para enviar a distribuidora", fecha: "Hace 5 días" },
-  { comunidad: "Polígono Solar Norte", accion: "Nuevo participante añadido", fecha: "Hace 1 semana" },
-];
+// ── Chat ─────────────────────────────────────────────────────────────────────
 
-// ── Typewriter ──────────────────────────────────────────────────────────────
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
 
 const PLACEHOLDER_TEXTS = [
   "¿Cuántas comunidades tengo pendientes de firma?",
   "¿Qué errores tiene el Edificio Lumina?",
   "¿Cuál es el siguiente paso para Torres del Parque?",
-  "Envía la documentación de Urbanización Las Encinas",
+  "¿Cómo funciona el fichero TXT para la distribuidora?",
 ];
 
 function useTypewriter(texts: string[], typingSpeed = 80, pauseMs = 3500) {
@@ -115,6 +111,113 @@ function useTypewriter(texts: string[], typingSpeed = 80, pauseMs = 3500) {
   }, [charIdx, deleting, idx, texts, typingSpeed, pauseMs]);
 
   return display;
+}
+
+function ChatPanel({
+  messages,
+  streaming,
+  streamingText,
+  input,
+  onInputChange,
+  onSend,
+  onClose,
+  noApiKey,
+}: {
+  messages: ChatMessage[];
+  streaming: boolean;
+  streamingText: string;
+  input: string;
+  onInputChange: (v: string) => void;
+  onSend: () => void;
+  onClose: () => void;
+  noApiKey: boolean;
+}) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, streamingText]);
+
+  return (
+    <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-primary" />
+          <span className="text-sm font-semibold text-foreground">Asistente Repartio</span>
+          <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">IA</span>
+        </div>
+        <button onClick={onClose} className="p-1 rounded hover:bg-muted transition-colors">
+          <X className="w-4 h-4 text-muted-foreground" />
+        </button>
+      </div>
+
+      {/* No API key warning */}
+      {noApiKey && (
+        <div className="mx-4 mt-3 p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800">
+          <strong>ANTHROPIC_API_KEY no configurada.</strong> Añádela en <code>.env</code> y reinicia el servidor para activar el chat.
+        </div>
+      )}
+
+      {/* Messages */}
+      <div className="h-80 overflow-y-auto p-4 space-y-3">
+        {messages.length === 0 && !streaming && (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <Bot className="w-10 h-10 text-muted-foreground/30 mb-2" />
+            <p className="text-sm text-muted-foreground">Pregúntame sobre tus comunidades</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Tengo acceso a todos tus datos en tiempo real</p>
+          </div>
+        )}
+        {messages.map((m, i) => (
+          <div key={i} className={`flex gap-2.5 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+              m.role === "user" ? "bg-primary/20" : "bg-muted"
+            }`}>
+              {m.role === "user" ? <User className="w-3.5 h-3.5 text-primary" /> : <Bot className="w-3.5 h-3.5 text-muted-foreground" />}
+            </div>
+            <div className={`max-w-[80%] px-3 py-2 rounded-xl text-xs leading-relaxed ${
+              m.role === "user"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-foreground"
+            }`}>
+              {m.content}
+            </div>
+          </div>
+        ))}
+        {streaming && (
+          <div className="flex gap-2.5">
+            <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+              <Bot className="w-3.5 h-3.5 text-muted-foreground" />
+            </div>
+            <div className="max-w-[80%] px-3 py-2 rounded-xl text-xs leading-relaxed bg-muted text-foreground">
+              {streamingText || <span className="animate-pulse">···</span>}
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      <div className="px-4 py-3 border-t border-border flex gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={e => onInputChange(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(); } }}
+          placeholder="Escribe tu pregunta..."
+          className="flex-1 bg-muted rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/20"
+          disabled={streaming}
+        />
+        <button
+          onClick={onSend}
+          disabled={streaming || !input.trim()}
+          className="p-2 rounded-lg bg-primary text-primary-foreground disabled:opacity-40 hover:bg-primary/90 transition-colors"
+        >
+          <Send className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
 }
 
 // ── Community Row ───────────────────────────────────────────────────────────
@@ -194,8 +297,23 @@ export default function DashboardPage() {
   const router = useRouter();
   const placeholder = useTypewriter(PLACEHOLDER_TEXTS);
   const [chatInput, setChatInput] = useState("");
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [streaming, setStreaming] = useState(false);
+  const [streamingText, setStreamingText] = useState("");
+  const [noApiKey, setNoApiKey] = useState(false);
 
-  const comunidades = useMemo(() => buildDerivedCommunities(), []);
+  const [communities, setCommunities] = useState<Community[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/communities")
+      .then(r => r.json())
+      .then(data => { setCommunities(Array.isArray(data) ? data : []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const comunidades = useMemo(() => buildDerived(communities), [communities]);
 
   const grouped = useMemo(() => {
     const map: Record<PipelineState, DerivedCommunity[]> = {
@@ -209,10 +327,78 @@ export default function DashboardPage() {
     return PIPELINE.find(p => grouped[p.id].length > 0)?.id ?? "faltan_datos";
   }, [grouped]);
 
-  const [activeState, setActiveState] = useState<PipelineState>(defaultExpanded);
+  const [activeState, setActiveState] = useState<PipelineState>("faltan_datos");
 
-  const totalParticipants = mockCommunities.reduce((s, c) => s + c.participants.filter(p => p.status !== "exited").length, 0);
-  const totalPower = mockCommunities.reduce((s, c) => s + c.potenciaInstalada, 0);
+  useEffect(() => {
+    if (!loading) setActiveState(defaultExpanded);
+  }, [loading, defaultExpanded]);
+
+  const totalParticipants = communities.reduce((s, c) => s + c.participants.filter(p => p.status !== "exited").length, 0);
+  const totalPower = communities.reduce((s, c) => s + c.potenciaInstalada, 0);
+
+  // Chat send handler with SSE streaming
+  const handleChatSend = async () => {
+    const text = chatInput.trim();
+    if (!text || streaming) return;
+
+    setChatOpen(true);
+    setChatInput("");
+    setNoApiKey(false);
+    const newMessages: ChatMessage[] = [...chatMessages, { role: "user", content: text }];
+    setChatMessages(newMessages);
+    setStreaming(true);
+    setStreamingText("");
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: newMessages }),
+      });
+
+      if (res.status === 503) {
+        setNoApiKey(true);
+        setStreaming(false);
+        return;
+      }
+
+      if (!res.ok) {
+        setChatMessages(prev => [...prev, { role: "assistant", content: "Lo siento, hubo un error. Inténtalo de nuevo." }]);
+        setStreaming(false);
+        return;
+      }
+
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      let fullText = "";
+
+      if (!reader) { setStreaming(false); return; }
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6);
+          if (data === "[DONE]") break;
+          try {
+            const { text: t } = JSON.parse(data);
+            fullText += t;
+            setStreamingText(fullText);
+          } catch {}
+        }
+      }
+
+      setChatMessages(prev => [...prev, { role: "assistant", content: fullText }]);
+    } catch {
+      setChatMessages(prev => [...prev, { role: "assistant", content: "Error de conexión. Inténtalo de nuevo." }]);
+    } finally {
+      setStreaming(false);
+      setStreamingText("");
+    }
+  };
 
   return (
     <div className="max-w-5xl mx-auto px-8 py-8 space-y-6 animate-fade-in pb-6">
@@ -230,56 +416,84 @@ export default function DashboardPage() {
             type="text"
             value={chatInput}
             onChange={(e) => setChatInput(e.target.value)}
-            placeholder={chatInput ? "" : placeholder + "\u258F"}
+            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleChatSend(); } }}
+            onFocus={() => { if (!chatOpen && chatMessages.length > 0) setChatOpen(true); }}
+            placeholder={chatInput ? "" : (chatOpen ? "Escribe un mensaje..." : placeholder + "\u258F")}
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/50 text-foreground"
-            disabled
           />
           <button
-            disabled
-            className="p-2 rounded-lg bg-primary text-primary-foreground disabled:opacity-40"
+            onClick={handleChatSend}
+            disabled={streaming || !chatInput.trim()}
+            className="p-2 rounded-lg bg-primary text-primary-foreground disabled:opacity-40 hover:bg-primary/90 transition-colors"
           >
             <Send className="w-4 h-4" />
           </button>
         </div>
+
+        {/* Chat panel */}
+        {chatOpen && (
+          <ChatPanel
+            messages={chatMessages}
+            streaming={streaming}
+            streamingText={streamingText}
+            input={chatInput}
+            onInputChange={setChatInput}
+            onSend={handleChatSend}
+            onClose={() => setChatOpen(false)}
+            noApiKey={noApiKey}
+          />
+        )}
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KpiCard title="Comunidades" value={mockCommunities.length} icon={Building2} delay={0} />
-        <KpiCard title="Participantes" value={totalParticipants} icon={Users} delay={100} />
-        <KpiCard title="Potencia total" value={totalPower} suffix=" kWp" icon={Zap} delay={200} />
-        <KpiCard title="Ahorro estimado" value={10160} prefix="€" icon={Sparkles} trend="+12%" delay={300} />
-      </div>
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[1,2,3,4].map(i => <div key={i} className="h-24 rounded-xl bg-muted/40 animate-pulse" />)}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <KpiCard title="Comunidades" value={communities.length} icon={Building2} delay={0} />
+          <KpiCard title="Participantes" value={totalParticipants} icon={Users} delay={100} />
+          <KpiCard title="Potencia total" value={totalPower} suffix=" kWp" icon={Zap} delay={200} />
+          <KpiCard title="Ahorro estimado" value={10160} prefix="€" icon={Sparkles} trend="+12%" delay={300} />
+        </div>
+      )}
 
       {/* Pipeline */}
       <div className="bg-card border border-border rounded-xl p-4">
-        <div className="grid grid-cols-4 gap-2">
-          {PIPELINE.map((state) => {
-            const count = grouped[state.id].length;
-            const isActive = activeState === state.id;
-            const Icon = state.icon;
-            return (
-              <button
-                key={state.id}
-                onClick={() => setActiveState(state.id)}
-                className={`relative flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all ${
-                  isActive ? "bg-muted ring-1 ring-primary/20" : "hover:bg-muted/50"
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${state.badgeClass}`}>
-                  <Icon className="w-4 h-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className={`text-xs font-medium truncate ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
-                    {state.label}
-                  </p>
-                  <p className="text-lg font-bold text-foreground leading-none mt-0.5">{count}</p>
-                </div>
-                {isActive && <div className="absolute bottom-0 left-3 right-3 h-0.5 bg-primary rounded-full" />}
-              </button>
-            );
-          })}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-4 gap-2">
+            {[1,2,3,4].map(i => <div key={i} className="h-14 rounded-lg bg-muted/40 animate-pulse" />)}
+          </div>
+        ) : (
+          <div className="grid grid-cols-4 gap-2">
+            {PIPELINE.map((state) => {
+              const count = grouped[state.id].length;
+              const isActive = activeState === state.id;
+              const Icon = state.icon;
+              return (
+                <button
+                  key={state.id}
+                  onClick={() => setActiveState(state.id)}
+                  className={`relative flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all ${
+                    isActive ? "bg-muted ring-1 ring-primary/20" : "hover:bg-muted/50"
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${state.badgeClass}`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-xs font-medium truncate ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                      {state.label}
+                    </p>
+                    <p className="text-lg font-bold text-foreground leading-none mt-0.5">{count}</p>
+                  </div>
+                  {isActive && <div className="absolute bottom-0 left-3 right-3 h-0.5 bg-primary rounded-full" />}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Community list for active state */}
@@ -295,13 +509,17 @@ export default function DashboardPage() {
                 </div>
                 <span className="text-sm font-semibold text-foreground">{state.label}</span>
                 <span className="text-xs text-muted-foreground">
-                  — {grouped[activeState].length} comunidad{grouped[activeState].length !== 1 ? "es" : ""}
+                  — {grouped[activeState]?.length ?? 0} comunidad{(grouped[activeState]?.length ?? 0) !== 1 ? "es" : ""}
                 </span>
               </>
             );
           })()}
         </div>
-        {grouped[activeState].length === 0 ? (
+        {loading ? (
+          <div className="divide-y divide-border">
+            {[1,2].map(i => <div key={i} className="px-4 py-3 h-12 bg-muted/20 animate-pulse" />)}
+          </div>
+        ) : (grouped[activeState]?.length ?? 0) === 0 ? (
           <div className="px-4 py-12 text-center">
             <CheckCircle2 className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">No hay comunidades en este estado</p>
@@ -322,14 +540,14 @@ export default function DashboardPage() {
           Últimos movimientos
         </h2>
         <div className="relative border-l-2 border-border ml-2 space-y-0">
-          {ultimosMovimientos.map((mov, i) => (
-            <div key={i} className="relative pl-6 pb-4 last:pb-0">
+          {communities.slice(0, 5).map((c) => (
+            <div key={c.id} className="relative pl-6 pb-4 last:pb-0">
               <div className="absolute left-[-5px] top-1.5 w-2 h-2 rounded-full bg-primary/60 ring-2 ring-background" />
               <p className="text-[13px] text-foreground">
-                <span className="font-medium">{mov.comunidad}</span>
-                <span className="text-muted-foreground"> — {mov.accion}</span>
+                <span className="font-medium">{c.name}</span>
+                <span className="text-muted-foreground"> — {c.participants.filter(p => p.status !== "exited").length} participantes activos · {c.potenciaInstalada} kWp</span>
               </p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">{mov.fecha}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5 capitalize">{c.phase}</p>
             </div>
           ))}
         </div>

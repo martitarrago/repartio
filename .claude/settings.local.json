@@ -5,7 +5,9 @@
       "Bash(npm run:*)",
       "Bash(python3 -c \"import sys,json; [print\\(json.loads\\(l\\).get\\(''''message'''',''''''''\\)\\) for l in sys.stdin if l.strip\\(\\)]\")",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/login)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/dashboard)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/dashboard)",
+      "Bash(npx vercel:*)",
+      "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); d={**p.get\\('dependencies',{}\\), **p.get\\('devDependencies',{}\\)}; print\\('tailwindcss:', d.get\\('tailwindcss','not found'\\)\\)\")"
     ]
   }
 }

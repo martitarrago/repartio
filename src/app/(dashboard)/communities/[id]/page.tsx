@@ -361,13 +361,13 @@ export default function CommunityDetailPage() {
           <div className="space-y-6">
             <TxtGeneratorTabPro community={community} />
             <div className="border-t border-border pt-6">
-              <DocumentsTabPro community={community} />
+              <DocumentsTabPro community={community} communityId={id} />
             </div>
           </div>
         )}
 
         {activeStep === "firmas" && (
-          <SignaturesTab community={community} />
+          <SignaturesTab community={community} communityId={id} />
         )}
       </div>
     </div>
