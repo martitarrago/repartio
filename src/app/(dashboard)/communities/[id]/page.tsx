@@ -35,6 +35,7 @@ export default function CommunityDetailPage() {
   const [saving, setSaving] = useState(false);
   const [activeStep, setActiveStep] = useState<StepId>("detalles");
   const [dismissedBanner, setDismissedBanner] = useState(false);
+  const [conjuntoId, setConjuntoId] = useState<string | undefined>(undefined);
 
   // Community state
   const [baseCommunity, setBaseCommunity] = useState<Community | null>(null);
@@ -62,6 +63,7 @@ export default function CommunityDetailPage() {
       .then((c: Community) => {
         setBaseCommunity(c);
         setParticipants(c.participants);
+        setConjuntoId(c.conjuntoId ?? undefined);
         setCoefMode(c.coeficientMode);
         setGestorEnabled(c.gestorEnabled);
         setGestorName(c.gestorName || "");
@@ -353,13 +355,21 @@ export default function CommunityDetailPage() {
                 {(totalBeta * 100).toFixed(2)}%
               </span>
             </div>
-            <BetaCoefficients participants={participants} mode={coefMode} onModeChange={setCoefMode} onParticipantsChange={setParticipants} />
+            <BetaCoefficients
+              participants={participants}
+              mode={coefMode}
+              onModeChange={setCoefMode}
+              onParticipantsChange={setParticipants}
+              communityId={id}
+              conjuntoId={conjuntoId}
+              onSaved={setConjuntoId}
+            />
           </div>
         )}
 
         {activeStep === "documento" && (
           <div className="space-y-6">
-            <TxtGeneratorTabPro community={community} />
+            <TxtGeneratorTabPro community={community} communityId={id} conjuntoId={conjuntoId} />
             <div className="border-t border-border pt-6">
               <DocumentsTabPro community={community} communityId={id} />
             </div>

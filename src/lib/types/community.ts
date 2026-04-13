@@ -78,6 +78,7 @@ export interface Participant {
 
 export interface Community {
   id: string;
+  conjuntoId?: string;
   name: string;
   address: string;
   city: string;

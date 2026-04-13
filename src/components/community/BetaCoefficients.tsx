@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { Sparkles, RotateCcw, Check, ChevronDown, Info, Calculator } from "lucide-react";
+import { Sparkles, RotateCcw, Check, ChevronDown, Info, Calculator, Save, Loader2 } from "lucide-react";
 import { type Participant, type SuggestionMethod, SUGGESTION_METHODS, type CoeficientMode } from "@/lib/types/community";
 
 interface BetaCoefficientsProps {
@@ -9,6 +9,9 @@ interface BetaCoefficientsProps {
   mode: CoeficientMode;
   onModeChange: (mode: CoeficientMode) => void;
   onParticipantsChange: (participants: Participant[]) => void;
+  communityId: string;
+  conjuntoId?: string;
+  onSaved?: (conjuntoId: string) => void;
 }
 
 const COLORS = [
@@ -18,9 +21,11 @@ const COLORS = [
   "hsl(170, 60%, 50%)", "hsl(0, 70%, 60%)", "hsl(130, 50%, 55%)",
 ];
 
-export function BetaCoefficients({ participants, mode, onModeChange, onParticipantsChange }: BetaCoefficientsProps) {
+export function BetaCoefficients({ participants, mode, onModeChange, onParticipantsChange, communityId, conjuntoId, onSaved }: BetaCoefficientsProps) {
   const [showSuggestionPanel, setShowSuggestionPanel] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<SuggestionMethod>("equal");
+  const [saving, setSaving] = useState(false);
+  const [savedOk, setSavedOk] = useState(false);
 
   const activeParticipants = useMemo(() => participants.filter(p => p.status !== "exited"), [participants]);
   const totalBeta = useMemo(() => activeParticipants.reduce((s, p) => s + p.beta, 0), [activeParticipants]);
@@ -76,6 +81,42 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
     onParticipantsChange(participants.map(p => ({ ...p, beta: eq })));
   };
 
+  const handleSave = useCallback(async () => {
+    if (!isComplete) return;
+    setSaving(true);
+    setSavedOk(false);
+    try {
+      const entradas = activeParticipants.map(p => ({
+        participanteId: p.id,
+        valor: p.beta.toFixed(6),
+      }));
+
+      let res: Response;
+      if (conjuntoId) {
+        res = await fetch(`/api/installations/${communityId}/coefficients/${conjuntoId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ modo: "CONSTANTE", entradas }),
+        });
+      } else {
+        res = await fetch(`/api/installations/${communityId}/coefficients`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ modo: "CONSTANTE", entradas }),
+        });
+      }
+
+      if (res.ok) {
+        const data = await res.json();
+        setSavedOk(true);
+        onSaved?.(data.id ?? conjuntoId ?? "");
+        setTimeout(() => setSavedOk(false), 3000);
+      }
+    } finally {
+      setSaving(false);
+    }
+  }, [activeParticipants, communityId, conjuntoId, isComplete, onSaved]);
+
   // Donut chart
   const size = 180;
   const strokeWidth = 28;
@@ -118,6 +159,21 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
           className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm hover:bg-secondary/80 transition-colors"
         >
           <RotateCcw className="w-3.5 h-3.5" />
+        </button>
+
+        <button
+          onClick={handleSave}
+          disabled={!isComplete || saving}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {saving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : savedOk ? (
+            <Check className="w-4 h-4" />
+          ) : (
+            <Save className="w-4 h-4" />
+          )}
+          {saving ? "Guardando..." : savedOk ? "Guardado" : "Guardar coeficientes"}
         </button>
       </div>
 

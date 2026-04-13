@@ -1,39 +1,90 @@
 "use client";
 
-import { useState } from "react";
-import { FileText, Download, CheckCircle2, AlertTriangle, Loader2, X, Code2, FileCheck } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { FileText, Download, CheckCircle2, AlertTriangle, Loader2, X, Code2, FileCheck, Clock } from "lucide-react";
 import { type Community } from "@/lib/types/community";
-import { generateDistributorTXT, downloadTXT } from "@/lib/mock-txt-generator";
 
 interface TxtGeneratorTabProProps {
   community: Community;
+  communityId: string;
+  conjuntoId?: string;
 }
 
-export function TxtGeneratorTabPro({ community }: TxtGeneratorTabProProps) {
+interface GenerateResult {
+  contenido: string;
+  nombreFichero: string;
+  totalLineas: number;
+}
+
+interface HistorialEntry {
+  id: string;
+  nombreFichero: string;
+  generadoEn: string;
+  totalLineas: number;
+  totalParticipantes: number;
+  modo: string;
+  verificacionSuma: boolean;
+}
+
+function downloadTXT(contenido: string, nombreFichero: string) {
+  const blob = new Blob([contenido], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nombreFichero;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function TxtGeneratorTabPro({ community, communityId, conjuntoId }: TxtGeneratorTabProProps) {
   const [generating, setGenerating] = useState(false);
-  const [result, setResult] = useState<ReturnType<typeof generateDistributorTXT> | null>(null);
+  const [result, setResult] = useState<GenerateResult | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [error, setError] = useState("");
+  const [historial, setHistorial] = useState<HistorialEntry[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
-  const handleGenerate = () => {
+  const activeParticipants = community.participants.filter(p => p.status !== "exited");
+  const totalBeta = activeParticipants.reduce((s, p) => s + p.beta, 0);
+  const isValid = Math.abs(totalBeta - 1) < 0.001 && !!conjuntoId;
+  const noConjunto = !conjuntoId;
+
+  const loadHistory = useCallback(async () => {
+    setLoadingHistory(true);
+    try {
+      const res = await fetch(`/api/installations/${communityId}/historial`);
+      if (res.ok) setHistorial(await res.json());
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, [communityId]);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+
+  const handleGenerate = async () => {
+    if (!conjuntoId) return;
     setGenerating(true);
-    setTimeout(() => {
-      const r = generateDistributorTXT(community);
-      setResult(r);
-      setGenerating(false);
+    setError("");
+    try {
+      const res = await fetch(`/api/installations/${communityId}/coefficients/${conjuntoId}/generate`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message ?? "Error al generar el fichero");
+        return;
+      }
+      setResult(data);
       setShowPreview(true);
-    }, 1200);
+      loadHistory();
+    } catch {
+      setError("Error de conexión");
+    } finally {
+      setGenerating(false);
+    }
   };
-
-  const handleDownload = () => {
-    if (!result) return;
-    const filename = `reparto_${community.cau.replace(/[^a-zA-Z0-9]/g, "_")}_${new Date().toISOString().slice(0, 10)}.txt`;
-    downloadTXT(result.content, filename);
-  };
-
-  const totalBeta = community.participants
-    .filter(p => p.status !== "exited")
-    .reduce((s, p) => s + p.beta, 0);
-  const isValid = Math.abs(totalBeta - 1) < 0.001;
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -51,12 +102,18 @@ export function TxtGeneratorTabPro({ community }: TxtGeneratorTabProProps) {
           </div>
           <div className="flex-1">
             <h3 className="font-heading font-semibold text-foreground">
-              {isValid ? "Fichero listo para generar" : "Coeficientes no válidos"}
+              {isValid
+                ? "Fichero listo para generar"
+                : noConjunto
+                ? "Guarda los coeficientes primero"
+                : "Coeficientes no válidos"}
             </h3>
             <p className="text-sm text-muted-foreground mt-0.5">
               {isValid
-                ? `${community.participants.filter(p => p.status !== "exited").length} participantes · Distribuidora: ${community.distribuidora.toUpperCase()} · Coeficientes β = ${(totalBeta * 100).toFixed(2)}%`
-                : `La suma de coeficientes β es ${(totalBeta * 100).toFixed(2)}% — ajusta en la pestaña "Coeficientes β" antes de generar.`
+                ? `${activeParticipants.length} participantes · Distribuidora: ${community.distribuidora.toUpperCase()} · Coeficientes β = ${(totalBeta * 100).toFixed(2)}%`
+                : noConjunto
+                ? "Ve a la pestaña \"Coeficientes\", ajusta los valores y pulsa \"Guardar coeficientes\"."
+                : `La suma de coeficientes β es ${(totalBeta * 100).toFixed(2)}% — debe ser exactamente 100%.`
               }
             </p>
             {isValid && (
@@ -65,12 +122,15 @@ export function TxtGeneratorTabPro({ community }: TxtGeneratorTabProProps) {
                   CAU: {community.cau}
                 </div>
                 <div className="text-[10px] font-mono bg-secondary px-2 py-1 rounded-md text-muted-foreground">
-                  Modo: {community.coeficientMode === "fixed" ? "Fijo" : "Variable por hora"}
+                  Modo: Fijo (β constante)
                 </div>
                 <div className="text-[10px] font-mono bg-secondary px-2 py-1 rounded-md text-muted-foreground">
                   Potencia: {community.potenciaInstalada} kWp
                 </div>
               </div>
+            )}
+            {error && (
+              <p className="mt-2 text-xs text-destructive">{error}</p>
             )}
           </div>
           <button
@@ -94,20 +154,15 @@ export function TxtGeneratorTabPro({ community }: TxtGeneratorTabProProps) {
           <div className="flex items-center justify-between px-5 py-3 border-b border-border/50">
             <div className="flex items-center gap-2">
               <Code2 className="w-4 h-4 text-primary" />
-              <span className="text-sm font-heading font-semibold text-foreground">Vista previa del fichero</span>
-              {result.isValid ? (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/15 text-primary flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Válido
-                </span>
-              ) : (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-destructive/15 text-destructive flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" /> {result.errors.length} error(es)
-                </span>
-              )}
+              <span className="text-sm font-heading font-semibold text-foreground">Vista previa</span>
+              <span className="text-[10px] font-mono text-muted-foreground">{result.nombreFichero}</span>
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/15 text-primary flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" /> {result.totalLineas} líneas
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={handleDownload}
+                onClick={() => downloadTXT(result.contenido, result.nombreFichero)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
               >
                 <Download className="w-3.5 h-3.5" />
@@ -119,20 +174,9 @@ export function TxtGeneratorTabPro({ community }: TxtGeneratorTabProProps) {
             </div>
           </div>
 
-          {result.errors.length > 0 && (
-            <div className="px-5 py-3 bg-destructive/5 border-b border-destructive/10">
-              {result.errors.map((err, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs text-destructive">
-                  <AlertTriangle className="w-3 h-3 flex-shrink-0" />
-                  {err}
-                </div>
-              ))}
-            </div>
-          )}
-
           <div className="p-5 bg-background/50 overflow-auto max-h-96">
             <pre className="text-xs font-mono text-muted-foreground leading-relaxed whitespace-pre">
-              {result.content}
+              {result.contenido}
             </pre>
           </div>
         </div>
@@ -143,23 +187,34 @@ export function TxtGeneratorTabPro({ community }: TxtGeneratorTabProProps) {
         <h3 className="font-heading font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-3">
           Historial de ficheros generados
         </h3>
-        {[
-          { date: "2026-03-15", distribuidora: "i-DE", status: "enviado" },
-          { date: "2026-02-01", distribuidora: "i-DE", status: "generado" },
-        ].map((item, i) => (
-          <div key={i} className="glass-card rounded-xl px-4 py-3 flex items-center gap-4 hover-lift">
+        {loadingHistory && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
+            <Loader2 className="w-3 h-3 animate-spin" /> Cargando historial...
+          </div>
+        )}
+        {!loadingHistory && historial.length === 0 && (
+          <p className="text-xs text-muted-foreground py-2">Aún no se han generado ficheros.</p>
+        )}
+        {historial.map((item) => (
+          <div key={item.id} className="glass-card rounded-xl px-4 py-3 flex items-center gap-4 hover-lift">
             <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
               <FileText className="w-4 h-4 text-muted-foreground" />
             </div>
-            <div className="flex-1">
-              <p className="text-xs font-medium text-foreground">Fichero reparto — {item.date}</p>
-              <p className="text-[10px] text-muted-foreground">{item.distribuidora} · TXT</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-foreground font-mono truncate">{item.nombreFichero}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {item.totalParticipantes} participantes · {item.totalLineas} líneas · {item.modo === "CONSTANTE" ? "β fijo" : "β variable"}
+              </p>
             </div>
-            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-              item.status === "enviado" ? "bg-primary/15 text-primary" : "bg-accent/15 text-accent"
-            }`}>
-              {item.status === "enviado" ? "Enviado" : "Generado"}
-            </span>
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground flex-shrink-0">
+              <Clock className="w-3 h-3" />
+              {new Date(item.generadoEn).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+            </div>
+            {item.verificacionSuma && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/15 text-primary flex-shrink-0">
+                Válido
+              </span>
+            )}
           </div>
         ))}
       </div>

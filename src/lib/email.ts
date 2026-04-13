@@ -25,7 +25,7 @@ export async function sendSignatureEmail(params: SignatureEmailParams): Promise<
   // ── Resend ────────────────────────────────────────────────────────────────
   if (process.env.RESEND_API_KEY) {
     try {
-      const from = process.env.FROM_EMAIL ?? "Repartio <noreply@repartio.es>";
+      const from = process.env.FROM_EMAIL ?? "Repartio <noreply@repartio.io>";
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {

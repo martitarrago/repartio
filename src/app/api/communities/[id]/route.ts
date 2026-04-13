@@ -102,6 +102,7 @@ export async function GET(
 
   const community = {
     id: i.id,
+    conjuntoId: i.conjuntos[0]?.id ?? null,
     name: i.nombre,
     address: i.direccion ?? "",
     city: i.municipio ?? "",
