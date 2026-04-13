@@ -2,32 +2,14 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import {
   AlertCircle, FileCheck, Send, Zap, ChevronRight,
-  Sparkles, Clock, ExternalLink, Loader2, X, CheckCircle2,
+  Sparkles, Clock, ExternalLink, CheckCircle2,
   Users, Building2,
 } from "lucide-react";
 import { mockCommunities } from "@/lib/mock-data";
 import { validateProject, validateAllocationSum, type Community } from "@/lib/types/community";
 import { KpiCard } from "@/components/dashboard/KpiCard";
-
-const SolarProductionChart = dynamic(
-  () => import("@/components/charts/SolarProductionChart").then(m => ({ default: m.SolarProductionChart })),
-  { ssr: false }
-);
-const MonthlySavingsChart = dynamic(
-  () => import("@/components/charts/MonthlySavingsChart").then(m => ({ default: m.MonthlySavingsChart })),
-  { ssr: false }
-);
-const CumulativeSavingsChart = dynamic(
-  () => import("@/components/charts/CumulativeSavingsChart").then(m => ({ default: m.CumulativeSavingsChart })),
-  { ssr: false }
-);
-const EnvironmentalImpact = dynamic(
-  () => import("@/components/charts/EnvironmentalImpact").then(m => ({ default: m.EnvironmentalImpact })),
-  { ssr: false }
-);
 
 // ── Pipeline ────────────────────────────────────────────────────────────────
 
@@ -331,16 +313,6 @@ export default function DashboardPage() {
             ))}
           </div>
         )}
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <SolarProductionChart />
-        <MonthlySavingsChart />
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <CumulativeSavingsChart />
-        <EnvironmentalImpact />
       </div>
 
       {/* Activity feed */}
