@@ -1,10 +1,10 @@
 "use client";
 
-import { Search, ArrowUpDown, Building2 } from "lucide-react";
+import { Search, ArrowUpDown, Building2, Plus } from "lucide-react";
 import { CommunityCard, type ProjectStatus } from "@/components/dashboard/CommunityCard";
-import { useState, useMemo } from "react";
-import { mockCommunities } from "@/lib/mock-data";
-import { validateProject, validateAllocationSum } from "@/lib/types/community";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { validateProject, validateAllocationSum, type Community } from "@/lib/types/community";
 
 type Filter = "todos" | "problemas" | "borrador" | "validado" | "activas";
 type SortBy = "issues" | "status" | "progress";
@@ -19,7 +19,7 @@ const FILTERS: { id: Filter; label: string }[] = [
 
 const STATUS_ORDER: ProjectStatus[] = ["borrador", "validado", "activo"];
 
-function deriveStatus(c: typeof mockCommunities[number]): ProjectStatus {
+function deriveStatus(c: Community): ProjectStatus {
   if (c.phase === "activo" || c.phase === "enviado") return "activo";
   const issues = validateProject(c);
   const errors = issues.filter(i => i.type === "error");
@@ -32,12 +32,22 @@ function deriveStatus(c: typeof mockCommunities[number]): ProjectStatus {
 }
 
 export default function CommunitiesPage() {
+  const router = useRouter();
+  const [communities, setCommunities] = useState<Community[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("todos");
   const [sortBy, setSortBy] = useState<SortBy>("status");
 
+  useEffect(() => {
+    fetch("/api/communities")
+      .then(r => r.json())
+      .then(data => { setCommunities(Array.isArray(data) ? data : []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
   const communitiesData = useMemo(() =>
-    mockCommunities.map(c => {
+    communities.map(c => {
       const issues = validateProject(c);
       const active = c.participants.filter(p => p.status !== "exited");
       const projectStatus = deriveStatus(c);
@@ -56,7 +66,7 @@ export default function CommunitiesPage() {
         warnings: issues.filter(i => i.type === "warning").length,
       };
     }),
-    []
+    [communities]
   );
 
   const filtered = useMemo(() => {
@@ -84,9 +94,19 @@ export default function CommunitiesPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-8 py-8 space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-xl font-bold font-heading text-foreground">Comunidades</h1>
-        <p className="text-muted-foreground text-sm mt-0.5">{communitiesData.length} instalaciones de autoconsumo</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold font-heading text-foreground">Comunidades</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">
+            {loading ? "Cargando..." : `${communitiesData.length} instalaciones de autoconsumo`}
+          </p>
+        </div>
+        <button
+          onClick={() => router.push("/communities/new")}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          <Plus className="w-4 h-4" /> Nueva comunidad
+        </button>
       </div>
 
       <div className="space-y-3">
@@ -132,7 +152,13 @@ export default function CommunitiesPage() {
         </div>
       </div>
 
-      {filtered.length > 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-40 rounded-xl bg-muted/40 animate-pulse" />
+          ))}
+        </div>
+      ) : filtered.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((community, i) => (
             <div key={community.id} className="animate-fade-in" style={{ animationDelay: `${i * 40}ms` }}>
@@ -147,8 +173,18 @@ export default function CommunitiesPage() {
             {search || filter !== "todos" ? "Sin resultados" : "Crea tu primera comunidad"}
           </h3>
           <p className="text-muted-foreground text-xs max-w-sm">
-            {search || filter !== "todos" ? "No hay comunidades que coincidan con los filtros." : "Registra tu primera instalación de autoconsumo colectivo."}
+            {search || filter !== "todos"
+              ? "No hay comunidades que coincidan con los filtros."
+              : "Registra tu primera instalación de autoconsumo colectivo."}
           </p>
+          {!search && filter === "todos" && (
+            <button
+              onClick={() => router.push("/communities/new")}
+              className="mt-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+            >
+              <Plus className="w-4 h-4" /> Nueva comunidad
+            </button>
+          )}
         </div>
       )}
     </div>

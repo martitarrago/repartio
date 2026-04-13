@@ -1,17 +1,16 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { MapPin, Users, Zap, FileText, AlertCircle, AlertTriangle, CheckCircle2, X, Building2, Hash, Circle, PenLine } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { MapPin, Users, Zap, FileText, AlertCircle, AlertTriangle, CheckCircle2, X, Building2, Hash, Circle, PenLine, Loader2 } from "lucide-react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { BetaCoefficients } from "@/components/community/BetaCoefficients";
 import { ParticipantsListPro } from "@/components/community/ParticipantsListPro";
 import { DocumentsTabPro } from "@/components/community/DocumentsTabPro";
 import { TxtGeneratorTabPro } from "@/components/community/TxtGeneratorTabPro";
 import { SignaturesTab } from "@/components/community/SignaturesTab";
 import { GestorPanel } from "@/components/community/GestorPanel";
-import { mockCommunities } from "@/lib/mock-data";
 import {
-  type Participant, type CoeficientMode, validateProject,
+  type Participant, type CoeficientMode, type Community, validateProject,
   MODALITIES, CONNECTION_TYPES, PROXIMITY_CRITERIA, DISTRIBUIDORAS,
   validateCUPS, validateCAU,
 } from "@/lib/types/community";
@@ -29,35 +28,83 @@ type StepStatus = "complete" | "error" | "pending";
 
 export default function CommunityDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [activeStep, setActiveStep] = useState<StepId>("detalles");
-
-  const baseCommunity = mockCommunities.find(c => c.id === id) || mockCommunities[0];
-
-  const [participants, setParticipants] = useState<Participant[]>(baseCommunity.participants);
-  const [coefMode, setCoefMode] = useState<CoeficientMode>(baseCommunity.coeficientMode);
-  const [gestorEnabled, setGestorEnabled] = useState(baseCommunity.gestorEnabled);
-  const [gestorName, setGestorName] = useState(baseCommunity.gestorName || "");
-  const [gestorNif, setGestorNif] = useState(baseCommunity.gestorNif || "");
-
-  const [name, setName] = useState(baseCommunity.name);
-  const [address, setAddress] = useState(baseCommunity.address);
-  const [city, setCity] = useState(baseCommunity.city);
-  const [postalCode, setPostalCode] = useState(baseCommunity.postalCode);
-  const [cif, setCif] = useState(baseCommunity.cif || "");
-  const [admin, setAdmin] = useState(baseCommunity.admin || "");
-  const [cau, setCau] = useState(baseCommunity.cau);
-  const [power, setPower] = useState(String(baseCommunity.potenciaInstalada));
-  const [modality, setModality] = useState(baseCommunity.modality);
-  const [connectionType, setConnectionType] = useState(baseCommunity.connectionType);
-  const [proximity, setProximity] = useState(baseCommunity.proximity);
   const [dismissedBanner, setDismissedBanner] = useState(false);
 
-  const community = useMemo(() => ({
-    ...baseCommunity,
+  // Community state
+  const [baseCommunity, setBaseCommunity] = useState<Community | null>(null);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [coefMode, setCoefMode] = useState<CoeficientMode>("fixed");
+  const [gestorEnabled, setGestorEnabled] = useState(false);
+  const [gestorName, setGestorName] = useState("");
+  const [gestorNif, setGestorNif] = useState("");
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [cif, setCif] = useState("");
+  const [admin, setAdmin] = useState("");
+  const [cau, setCau] = useState("");
+  const [power, setPower] = useState("");
+  const [modality, setModality] = useState("con_excedentes_con_compensacion");
+  const [connectionType, setConnectionType] = useState("red_interior");
+  const [proximity, setProximity] = useState("mismo_edificio");
+
+  // Cargar desde API
+  useEffect(() => {
+    fetch(`/api/communities/${id}`)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then((c: Community) => {
+        setBaseCommunity(c);
+        setParticipants(c.participants);
+        setCoefMode(c.coeficientMode);
+        setGestorEnabled(c.gestorEnabled);
+        setGestorName(c.gestorName || "");
+        setGestorNif(c.gestorNif || "");
+        setName(c.name);
+        setAddress(c.address);
+        setCity(c.city);
+        setPostalCode(c.postalCode);
+        setCif(c.cif || "");
+        setAdmin(c.admin || "");
+        setCau(c.cau);
+        setPower(String(c.potenciaInstalada));
+        setModality(c.modality);
+        setConnectionType(c.connectionType);
+        setProximity(c.proximity);
+        setLoading(false);
+      })
+      .catch(() => { router.push("/communities"); });
+  }, [id, router]);
+
+  // Guardar cambios en detalles
+  const handleSaveDetalles = useCallback(async () => {
+    setSaving(true);
+    await fetch(`/api/communities/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name, address, city, postalCode, cif: cif || undefined, admin: admin || undefined,
+        cau, power: parseFloat(power) || undefined,
+        modality, connectionType, proximity,
+        gestorEnabled, gestorName: gestorName || undefined, gestorNif: gestorNif || undefined,
+      }),
+    });
+    setSaving(false);
+  }, [id, name, address, city, postalCode, cif, admin, cau, power, modality, connectionType, proximity, gestorEnabled, gestorName, gestorNif]);
+
+  const community = useMemo((): Community => ({
+    ...(baseCommunity ?? {} as Community),
     name, address, city, postalCode, cif, admin, cau,
-    potenciaInstalada: parseFloat(power) || baseCommunity.potenciaInstalada,
-    modality, connectionType, proximity,
+    potenciaInstalada: parseFloat(power) || 0,
+    modality: modality as any,
+    connectionType: connectionType as any,
+    proximity: proximity as any,
     participants,
     coeficientMode: coefMode,
     gestorEnabled, gestorName, gestorNif,
@@ -67,26 +114,20 @@ export default function CommunityDetailPage() {
   const totalBeta = activeParticipants.reduce((s, p) => s + p.beta, 0);
   const betaValid = Math.abs(totalBeta - 1) < 0.001;
 
-  const issues = useMemo(() => validateProject(community), [community]);
+  const issues = useMemo(() => baseCommunity ? validateProject(community) : [], [community, baseCommunity]);
   const errors = issues.filter(i => i.type === "error");
   const warnings = issues.filter(i => i.type === "warning");
 
   const stepStatuses = useMemo((): Record<StepId, StepStatus> => {
-    const hasName = name.trim().length > 0;
     const cauResult = validateCAU(cau);
-    const detalles: StepStatus = hasName && cauResult.valid ? "complete" : "pending";
-
+    const detalles: StepStatus = name.trim().length > 0 && cauResult.valid ? "complete" : "pending";
     const validParticipants = activeParticipants.filter(p => validateCUPS(p.cups).valid);
     const participantes: StepStatus = validParticipants.length > 0 ? "complete" : (activeParticipants.length > 0 ? "error" : "pending");
-
     const coeficientes: StepStatus = activeParticipants.length === 0 ? "pending" : (betaValid ? "complete" : "error");
-
-    const documento: StepStatus = community.documents.txt ? "complete" : "pending";
-
+    const documento: StepStatus = community.documents?.txt ? "complete" : "pending";
     const allSigned = activeParticipants.length > 0 && activeParticipants.every(p => p.signatureState === "signed");
     const anyRejected = activeParticipants.some(p => p.signatureState === "rejected");
     const firmas: StepStatus = anyRejected ? "error" : (allSigned ? "complete" : "pending");
-
     return { detalles, participantes, coeficientes, documento, firmas };
   }, [name, cau, community, activeParticipants, betaValid]);
 
@@ -96,6 +137,14 @@ export default function CommunityDetailPage() {
     : { label: "Borrador", className: "bg-muted text-muted-foreground" };
 
   const inputClass = "w-full px-3 py-3 rounded-lg bg-muted/50 border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all";
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-32">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-8 py-8 space-y-6 animate-fade-in">
@@ -116,7 +165,7 @@ export default function CommunityDetailPage() {
         </div>
       </div>
 
-      {/* 5-step stepper */}
+      {/* Stepper */}
       <div className="flex items-center gap-0">
         {STEPS.map((step, i) => {
           const status = stepStatuses[step.id];
@@ -166,7 +215,6 @@ export default function CommunityDetailPage() {
             <div key={`e${i}`} className="flex items-start gap-2 text-xs">
               <AlertCircle className="w-3.5 h-3.5 text-destructive flex-shrink-0 mt-0.5" />
               <span className="text-destructive">{e.message}</span>
-              {e.action && <button className="ml-auto text-[10px] font-medium text-primary hover:underline whitespace-nowrap">{e.action}</button>}
             </div>
           ))}
           {warnings.map((w, i) => (
@@ -238,31 +286,23 @@ export default function CommunityDetailPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] text-muted-foreground mb-1.5 block uppercase tracking-wider font-semibold">Distribuidora</label>
-                  <div className="px-3 py-3 rounded-lg bg-muted/50 border border-border text-sm text-foreground">
-                    {DISTRIBUIDORAS.find(d => d.id === community.distribuidora)?.label || community.distribuidora}
-                  </div>
-                </div>
-                <div>
                   <label className="text-[10px] text-muted-foreground mb-1.5 block uppercase tracking-wider font-semibold">Modalidad</label>
-                  <select value={modality} onChange={(e) => setModality(e.target.value as typeof modality)} className={inputClass}>
+                  <select value={modality} onChange={(e) => setModality(e.target.value)} className={inputClass}>
                     {MODALITIES.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
                   </select>
                 </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] text-muted-foreground mb-1.5 block uppercase tracking-wider font-semibold">Tipo de conexión</label>
-                  <select value={connectionType} onChange={(e) => setConnectionType(e.target.value as typeof connectionType)} className={inputClass}>
+                  <select value={connectionType} onChange={(e) => setConnectionType(e.target.value)} className={inputClass}>
                     {CONNECTION_TYPES.map(ct => <option key={ct.id} value={ct.id}>{ct.label}</option>)}
                   </select>
                 </div>
-                <div>
-                  <label className="text-[10px] text-muted-foreground mb-1.5 block uppercase tracking-wider font-semibold">Proximidad</label>
-                  <select value={proximity} onChange={(e) => setProximity(e.target.value as typeof proximity)} className={inputClass}>
-                    {PROXIMITY_CRITERIA.map(pc => <option key={pc.id} value={pc.id}>{pc.label}</option>)}
-                  </select>
-                </div>
+              </div>
+              <div>
+                <label className="text-[10px] text-muted-foreground mb-1.5 block uppercase tracking-wider font-semibold">Proximidad</label>
+                <select value={proximity} onChange={(e) => setProximity(e.target.value)} className={inputClass}>
+                  {PROXIMITY_CRITERIA.map(pc => <option key={pc.id} value={pc.id}>{pc.label}</option>)}
+                </select>
               </div>
             </div>
 
@@ -273,11 +313,26 @@ export default function CommunityDetailPage() {
               onToggle={setGestorEnabled}
               onUpdate={(n, nif) => { setGestorName(n); setGestorNif(nif); }}
             />
+
+            <div className="flex justify-end">
+              <button
+                onClick={handleSaveDetalles}
+                disabled={saving}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                Guardar cambios
+              </button>
+            </div>
           </div>
         )}
 
         {activeStep === "participantes" && (
-          <ParticipantsListPro participants={participants} onParticipantsChange={setParticipants} />
+          <ParticipantsListPro
+            participants={participants}
+            onParticipantsChange={setParticipants}
+            communityId={id}
+          />
         )}
 
         {activeStep === "coeficientes" && (

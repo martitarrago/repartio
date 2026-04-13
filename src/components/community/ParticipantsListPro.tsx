@@ -7,6 +7,7 @@ import { type Participant, validateCUPS } from "@/lib/types/community";
 interface ParticipantsListProps {
   participants: Participant[];
   onParticipantsChange: (participants: Participant[]) => void;
+  communityId?: string;
 }
 
 const STATUS_CONFIG = {

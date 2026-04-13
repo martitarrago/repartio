@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Building2, Zap, Users, Plus, X, Check, Sun, Sliders, FileCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Building2, Zap, Users, Plus, X, Check, Sun, Sliders, FileCheck, Loader2 } from "lucide-react";
 import { DISTRIBUIDORAS, type Modality, MODALITIES, type ConnectionType, type ProximityCriteria, validateCUPS, validateCAU, detectDistribuidora } from "@/lib/types/community";
 
 interface NewParticipant {
@@ -46,6 +46,8 @@ export default function NewCommunityPage() {
   const [cupsError, setCupsError] = useState("");
 
   const [isComplete, setIsComplete] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const canProceed = () => {
     switch (step) {
@@ -90,9 +92,41 @@ export default function NewCommunityPage() {
   if (participants.length > 0 && !betaValid) summaryWarnings.push(`La suma de coeficientes es ${(totalBeta * 100).toFixed(2)}%, debe ser 100%`);
   if (parseFloat(power) > 100 && modality === "sin_excedentes") summaryWarnings.push("Instalaciones >100kW suelen requerir modalidad con excedentes");
 
-  const handleFinish = () => {
-    setIsComplete(true);
-    setTimeout(() => router.push("/communities"), 2500);
+  const handleFinish = async () => {
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const res = await fetch("/api/communities", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name, address, city, postalCode,
+          cif: cif || undefined,
+          admin: admin || undefined,
+          cau: cau.toUpperCase(),
+          power: parseFloat(power),
+          modality,
+          participants: participants.map(p => ({
+            name: p.name,
+            cups: p.cups,
+            email: p.email || undefined,
+            unit: p.unit || undefined,
+            beta: p.beta,
+          })),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setSubmitError(data.message || "Error al crear la comunidad");
+        setSubmitting(false);
+        return;
+      }
+      setIsComplete(true);
+      setTimeout(() => router.push("/communities"), 2000);
+    } catch {
+      setSubmitError("Error de conexión");
+      setSubmitting(false);
+    }
   };
 
   if (isComplete) {
@@ -375,9 +409,17 @@ export default function NewCommunityPage() {
             Siguiente <ArrowRight className="w-3.5 h-3.5" />
           </button>
         ) : (
-          <button onClick={handleFinish} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-xs hover:bg-primary/90 transition-colors">
-            <Check className="w-3.5 h-3.5" /> Crear comunidad
-          </button>
+          <div className="flex flex-col items-end gap-1">
+            {submitError && <p className="text-xs text-destructive">{submitError}</p>}
+            <button
+              onClick={handleFinish}
+              disabled={submitting}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-xs hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+              Crear comunidad
+            </button>
+          </div>
         )}
       </div>
     </div>
