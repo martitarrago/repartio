@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { MapPin, Users, Zap, FileText, AlertCircle, AlertTriangle, CheckCircle2, X, Building2, Hash, Circle, PenLine, Loader2 } from "lucide-react";
+import { MapPin, Users, Zap, FileText, AlertCircle, AlertTriangle, CheckCircle2, X, Building2, Hash, Circle, PenLine, Loader2, Send } from "lucide-react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { BetaCoefficients } from "@/components/community/BetaCoefficients";
 import { ParticipantsListPro } from "@/components/community/ParticipantsListPro";
@@ -34,6 +34,7 @@ export default function CommunityDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<"ok" | "error" | null>(null);
+  const [markingEnviado, setMarkingEnviado] = useState(false);
   const [activeStep, setActiveStep] = useState<StepId>("detalles");
   const [dismissedBanner, setDismissedBanner] = useState(false);
   const [conjuntoId, setConjuntoId] = useState<string | undefined>(undefined);
@@ -108,6 +109,21 @@ export default function CommunityDetailPage() {
     setTimeout(() => setSaveResult(null), 3000);
   }, [id, name, address, city, postalCode, cif, admin, cau, power, modality, connectionType, proximity, gestorEnabled, gestorName, gestorNif]);
 
+  const handleMarkEnviado = useCallback(async () => {
+    setMarkingEnviado(true);
+    try {
+      const res = await fetch(`/api/communities/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fase: "enviado" }),
+      });
+      if (res.ok && baseCommunity) {
+        setBaseCommunity({ ...baseCommunity, phase: "enviado" });
+      }
+    } catch {}
+    setMarkingEnviado(false);
+  }, [id, baseCommunity]);
+
   const community = useMemo((): Community => ({
     ...(baseCommunity ?? {} as Community),
     name, address, city, postalCode, cif, admin, cau,
@@ -142,7 +158,13 @@ export default function CommunityDetailPage() {
   }, [name, cau, community, activeParticipants, betaValid]);
 
   const allComplete = Object.values(stepStatuses).every(s => s === "complete");
-  const projectStatus = allComplete
+  const isEnviado = baseCommunity?.phase === "enviado";
+  const isActivo = baseCommunity?.phase === "activo";
+  const projectStatus = isActivo
+    ? { label: "Activo", className: "bg-green-100 text-green-700" }
+    : isEnviado
+    ? { label: "Enviado", className: "bg-blue-100 text-blue-700" }
+    : allComplete
     ? { label: "Validado", className: "bg-primary/10 text-primary" }
     : { label: "Borrador", className: "bg-muted text-muted-foreground" };
 
@@ -173,6 +195,22 @@ export default function CommunityDetailPage() {
             <span className="flex items-center gap-1"><Zap className="w-3 h-3" />{community.potenciaInstalada} kWp</span>
           </div>
         </div>
+        {allComplete && !isEnviado && !isActivo && (
+          <button
+            onClick={handleMarkEnviado}
+            disabled={markingEnviado}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex-shrink-0"
+          >
+            {markingEnviado ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+            Marcar como enviado
+          </button>
+        )}
+        {isEnviado && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200 text-xs font-medium text-blue-700">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Enviado a distribuidora
+          </div>
+        )}
       </div>
 
       {/* Stepper */}

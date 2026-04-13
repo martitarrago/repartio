@@ -233,8 +233,24 @@ function ChatPanel({
 
 // ── Community Row ───────────────────────────────────────────────────────────
 
-function CommunityRow({ community: com, onNavigate }: { community: DerivedCommunity; onNavigate: () => void }) {
+function CommunityRow({ community: com, onNavigate, onEnviado }: { community: DerivedCommunity; onNavigate: () => void; onEnviado?: () => void }) {
   const [expanded, setExpanded] = useState(false);
+  const [marking, setMarking] = useState(false);
+
+  const handleMarkEnviado = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMarking(true);
+    try {
+      await fetch(`/api/communities/${com.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fase: "enviado" }),
+      });
+      onEnviado?.();
+    } finally {
+      setMarking(false);
+    }
+  };
 
   return (
     <div className="hover:bg-muted/30 transition-colors">
@@ -279,10 +295,14 @@ function CommunityRow({ community: com, onNavigate }: { community: DerivedCommun
           )}
           {com.estado === "listo_para_enviar" && (
             <button
-              onClick={(e) => { e.stopPropagation(); onNavigate(); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
+              onClick={handleMarkEnviado}
+              disabled={marking}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              <Send className="w-3 h-3" /> Enviar a distribuidora
+              {marking
+                ? <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" /> Marcando...</>
+                : <><Send className="w-3 h-3" /> Marcar como enviado</>
+              }
             </button>
           )}
           {com.estado === "activado" && (
@@ -534,7 +554,16 @@ export default function DashboardPage() {
         ) : (
           <div className="divide-y divide-border">
             {grouped[activeState].map((com) => (
-              <CommunityRow key={com.id} community={com} onNavigate={() => router.push(`/communities/${com.id}`)} />
+              <CommunityRow
+                key={com.id}
+                community={com}
+                onNavigate={() => router.push(`/communities/${com.id}`)}
+                onEnviado={() => {
+                  setCommunities(prev => prev.map(c =>
+                    c.id === com.id ? { ...c, phase: "enviado" as const } : c
+                  ));
+                }}
+              />
             ))}
           </div>
         )}
