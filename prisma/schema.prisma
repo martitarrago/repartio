@@ -11,6 +11,41 @@ datasource db {
 }
 
 // ─────────────────────────────────────────────
+// ENUMS GLOBALES
+// ─────────────────────────────────────────────
+
+enum FaseInstalacion {
+  CONFIGURACION
+  VECINOS
+  REPARTO
+  FIRMAS
+  LISTO
+  ENVIADO
+  ACTIVO
+}
+
+enum EstadoFirma {
+  PENDIENTE
+  FIRMADO
+  RECHAZADO
+}
+
+enum EstadoParticipante {
+  ACTIVO
+  PENDIENTE_ALTA
+  BAJA
+}
+
+enum TipoDocumento {
+  ACUERDO_REPARTO
+  TXT_DISTRIBUIDOR
+  CIE
+  AUTORIZACION_GESTOR
+  CERTIFICADO_CAU
+  OTRO
+}
+
+// ─────────────────────────────────────────────
 // MULTI-TENANT: ORGANIZACION + USUARIO
 // ─────────────────────────────────────────────
 
@@ -94,26 +129,39 @@ enum EstadoInstalacion {
 }
 
 model Instalacion {
-  id               String              @id @default(cuid())
+  id               String               @id @default(cuid())
   nombre           String
   descripcion      String?
-  cau              String              // Código de Autoconsumo Unificado
+  cau              String               // Código de Autoconsumo Unificado
   anio             Int
-  modalidad        ModalidadAutoconsumo @default(COLECTIVO_CON_EXCEDENTES)
-  tipoRed          TipoRed             @default(EXTERIOR_RED_DISTRIBUCION)
-  tecnologia       TecnologiaGeneracion @default(FOTOVOLTAICA)
-  potenciaKw       Decimal?            @db.Decimal(10, 3)
-  estado           EstadoInstalacion   @default(BORRADOR)
+  modalidad        ModalidadAutoconsumo  @default(COLECTIVO_CON_EXCEDENTES)
+  tipoRed          TipoRed              @default(EXTERIOR_RED_DISTRIBUCION)
+  tecnologia       TecnologiaGeneracion  @default(FOTOVOLTAICA)
+  potenciaKw       Decimal?             @db.Decimal(10, 3)
+  estado           EstadoInstalacion    @default(BORRADOR)
   municipio        String?
   provincia        String?
-  codigoPostal     String?             @db.Char(5)
+  codigoPostal     String?              @db.Char(5)
   organizacionId   String
-  creadaEn         DateTime            @default(now())
-  actualizadaEn    DateTime            @updatedAt
+  creadaEn         DateTime             @default(now())
+  actualizadaEn    DateTime             @updatedAt
 
-  organizacion     Organizacion         @relation(fields: [organizacionId], references: [id], onDelete: Cascade)
+  // ── Campos ampliados para Comunidades ──
+  direccion        String?              // Calle y número
+  administrador    String?              // Nombre del administrador / representante
+  cif              String?              // CIF de la comunidad
+  distribuidoraCode String?             // Código REE 4 dígitos (ej: "0021")
+  tipoProximidad   String?              // mismo_edificio | misma_referencia_catastral | baja_tension_500m | baja_tension_2000m
+  numPaneles       Int?
+  fase             FaseInstalacion      @default(CONFIGURACION)
+  gestorHabilitado Boolean              @default(false)
+  gestorNombre     String?
+  gestorNif        String?
+
+  organizacion     Organizacion          @relation(fields: [organizacionId], references: [id], onDelete: Cascade)
   participantes    Participante[]
   conjuntos        ConjuntoCoeficientes[]
+  documentos       Documento[]
 
   @@unique([cau, anio, organizacionId])
   @@map("instalaciones")
@@ -124,15 +172,29 @@ model Instalacion {
 // ─────────────────────────────────────────────
 
 model Participante {
-  id             String   @id @default(cuid())
-  cups           String   @db.Char(22)  // CUPS según formato REE
-  nombre         String
-  descripcion    String?  // ej: "Piso 1A", "Local Bajo"
-  instalacionId  String
-  orden          Int      @default(0)   // orden visual en tablas
-  activo         Boolean  @default(true)
-  creadoEn       DateTime @default(now())
-  actualizadoEn  DateTime @updatedAt
+  id                    String             @id @default(cuid())
+  cups                  String             @db.Char(22)  // CUPS según formato REE
+  nombre                String
+  descripcion           String?            // ej: "Piso 1A", "Local Bajo"
+  instalacionId         String
+  orden                 Int                @default(0)   // orden visual en tablas
+  activo                Boolean            @default(true)
+  creadoEn              DateTime           @default(now())
+  actualizadoEn         DateTime           @updatedAt
+
+  // ── Campos ampliados para Comunidades ──
+  email                 String?
+  unidad                String?            // "1ºA", "Local Bajo", etc.
+  estadoFirma           EstadoFirma        @default(PENDIENTE)
+  estadoParticipante    EstadoParticipante @default(ACTIVO)
+  fechaAlta             DateTime           @default(now())
+  fechaBaja             DateTime?
+
+  // ── Signaturit ──
+  signaturitSignatureId String?            // ID de firma en Signaturit
+  signaturitRequestId   String?            // ID de solicitud en Signaturit
+  signedDocumentUrl     String?            // URL del PDF firmado con certificado
+  firmadoEn             DateTime?
 
   instalacion    Instalacion           @relation(fields: [instalacionId], references: [id], onDelete: Cascade)
   entradas       EntradaCoeficiente[]
@@ -140,6 +202,28 @@ model Participante {
   @@unique([cups, instalacionId])
   @@index([instalacionId, orden])
   @@map("participantes")
+}
+
+// ─────────────────────────────────────────────
+// DOCUMENTO (acuerdos, TXT, CIE, etc.)
+// ─────────────────────────────────────────────
+
+model Documento {
+  id             String        @id @default(cuid())
+  instalacionId  String
+  tipo           TipoDocumento
+  nombreFichero  String
+  storageUrl     String        // Supabase Storage URL
+  storagePath    String        // path interno en el bucket
+  tamanoBytes    Int?
+  mimeType       String?
+  creadoPorId    String?
+  creadoEn       DateTime      @default(now())
+
+  instalacion    Instalacion   @relation(fields: [instalacionId], references: [id], onDelete: Cascade)
+
+  @@index([instalacionId, tipo])
+  @@map("documentos")
 }
 
 // ─────────────────────────────────────────────
