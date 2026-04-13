@@ -85,6 +85,10 @@
     background: linear-gradient(135deg, hsl(160 84% 39%), hsl(43 96% 56%));
   }
 
+  .mint-gradient {
+    background: linear-gradient(135deg, hsl(160 84% 39%), hsl(168 80% 52%));
+  }
+
   .solar-gradient-text {
     background: linear-gradient(135deg, hsl(160 84% 39%), hsl(43 96% 56%));
     -webkit-background-clip: text;
