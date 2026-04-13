@@ -24,6 +24,16 @@
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --radius: 0.75rem;
+
+    /* Sidebar */
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 220 9% 15%;
+    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 9% 96%;
+    --sidebar-accent-foreground: 220 9% 15%;
+    --sidebar-border: 220 9% 91%;
+    --sidebar-ring: 160 84% 39%;
   }
 }
 
