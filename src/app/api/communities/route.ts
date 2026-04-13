@@ -100,18 +100,18 @@ function toApiCommunity(i: any, betaMap: Record<string, number>) {
   };
 }
 
-async function getBetaMap(instalacionId: string): Promise<Record<string, number>> {
+async function getConjuntoData(instalacionId: string): Promise<{ betaMap: Record<string, number>; conjuntoId: string | null; modo: string }> {
   const conjunto = await prisma.conjuntoCoeficientes.findFirst({
-    where: { instalacionId, estado: { in: ["PUBLICADO", "VALIDADO"] } },
+    where: { instalacionId, estado: { in: ["PUBLICADO", "VALIDADO", "BORRADOR"] } },
     orderBy: { version: "desc" },
     include: { entradas: { where: { hora: null, tipoDia: null } } },
   });
-  if (!conjunto) return {};
-  const map: Record<string, number> = {};
+  if (!conjunto) return { betaMap: {}, conjuntoId: null, modo: "CONSTANTE" };
+  const betaMap: Record<string, number> = {};
   for (const e of conjunto.entradas) {
-    map[e.participanteId] = Number(e.valor);
+    betaMap[e.participanteId] = Number(e.valor);
   }
-  return map;
+  return { betaMap, conjuntoId: conjunto.id, modo: conjunto.modo };
 }
 
 // ── GET /api/communities ──────────────────────────────────────────────────────
@@ -128,22 +128,16 @@ export async function GET() {
     include: {
       participantes: { where: { activo: true }, orderBy: { orden: "asc" } },
       documentos: { select: { tipo: true } },
-      conjuntos: {
-        where: { estado: { in: ["PUBLICADO", "VALIDADO", "BORRADOR"] } },
-        orderBy: { version: "desc" },
-        take: 1,
-        select: { id: true, modo: true },
-      },
     },
     orderBy: { actualizadaEn: "desc" },
   });
 
   const communities = await Promise.all(
     instalaciones.map(async (i) => {
-      const betaMap = await getBetaMap(i.id);
+      const { betaMap, conjuntoId, modo } = await getConjuntoData(i.id);
       const c = toApiCommunity(i, betaMap);
-      c.coeficientMode = i.conjuntos[0]?.modo === "VARIABLE" ? "variable" : "fixed";
-      c.conjuntoId = i.conjuntos[0]?.id ?? null;
+      c.coeficientMode = modo === "VARIABLE" ? "variable" : "fixed";
+      c.conjuntoId = conjuntoId;
       return c;
     })
   );
