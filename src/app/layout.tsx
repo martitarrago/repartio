@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Sora, Manrope } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
+import { CookieBanner } from "@/components/CookieBanner";
 import "./globals.css";
 
 const sora = Sora({
@@ -32,7 +33,10 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${sora.variable} ${manrope.variable}`}>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          {children}
+          <CookieBanner />
+        </SessionProvider>
       </body>
     </html>
   );

@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import {
   User, Building2, Lock, Users, Check, Loader2, AlertCircle,
-  Trash2, Shield, Eye, EyeOff, Plus, X,
+  Trash2, Shield, Eye, EyeOff, Plus, X, Sparkles,
 } from "lucide-react";
+import Link from "next/link";
 
 const inputClass = "w-full px-3 py-2.5 rounded-lg bg-muted/50 border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all";
 const labelClass = "text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1.5 block";
@@ -409,6 +410,42 @@ function TeamSection() {
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
+function PlanSection() {
+  return (
+    <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+      <div className="flex items-center gap-2">
+        <Sparkles className="w-4 h-4 text-muted-foreground" />
+        <h2 className="font-semibold text-sm text-foreground">Mi plan</h2>
+      </div>
+
+      <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-foreground">Plan Gratis</span>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#EF9F27]/15 text-[#B8760A]">Beta</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">1 comunidad · 1 usuario · Todas las funciones</p>
+        </div>
+        <Link
+          href="/pricing"
+          className="text-xs font-medium px-3 py-1.5 rounded-lg border border-border hover:bg-muted transition-colors"
+        >
+          Ver planes
+        </Link>
+      </div>
+
+      <p className="text-xs text-muted-foreground">
+        Estamos en beta — los planes y precios definitivos se anunciarán próximamente.
+        Escríbenos a{" "}
+        <a href="mailto:hola@repartio.es" className="underline hover:text-foreground transition-colors">
+          hola@repartio.es
+        </a>
+        {" "}para cualquier consulta.
+      </p>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   return (
     <div className="max-w-3xl mx-auto px-8 py-8 space-y-6 animate-fade-in">
@@ -416,6 +453,7 @@ export default function SettingsPage() {
         <h1 className="text-xl font-bold font-heading text-foreground">Configuración</h1>
         <p className="text-muted-foreground text-sm mt-0.5">Gestiona tu cuenta, organización y equipo</p>
       </div>
+      <PlanSection />
       <ProfileSection />
       <PasswordSection />
       <OrganizationSection />

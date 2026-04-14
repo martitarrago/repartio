@@ -9,7 +9,12 @@ export default auth((req) => {
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
     pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/register");
+    pathname.startsWith("/api/register") ||
+    pathname.startsWith("/privacidad") ||
+    pathname.startsWith("/legal") ||
+    pathname.startsWith("/terminos") ||
+    pathname.startsWith("/pricing") ||
+    pathname.startsWith("/sign");
 
   if (!isLoggedIn && !isPublic) {
     const url = new URL("/login", req.url);
