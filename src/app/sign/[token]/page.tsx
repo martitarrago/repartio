@@ -81,8 +81,8 @@ export default function SignPage() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white" />
+          <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center">
+            <Zap className="w-4 h-4 text-yellow-400" />
           </div>
           <span className="font-semibold text-gray-900">Repartio</span>
           <span className="text-gray-400 text-sm ml-2">Firma de acuerdo</span>
@@ -95,7 +95,7 @@ export default function SignPage() {
           {/* Loading */}
           {state === "loading" && (
             <div className="flex items-center justify-center py-24">
-              <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+              <Loader2 className="w-8 h-8 animate-spin text-gray-900" />
             </div>
           )}
 
@@ -120,7 +120,7 @@ export default function SignPage() {
           {/* Already signed */}
           {state === "already_signed" && (
             <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
-              <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto mb-3" />
+              <CheckCircle2 className="w-12 h-12 text-yellow-500 mx-auto mb-3" />
               <h1 className="text-lg font-semibold text-gray-900 mb-2">Ya firmaste este documento</h1>
               <p className="text-gray-500 text-sm">Tu firma ya estaba registrada. No es necesario volver a firmar.</p>
             </div>
@@ -128,9 +128,9 @@ export default function SignPage() {
 
           {/* Signed — success */}
           {state === "signed" && (
-            <div className="bg-white rounded-2xl border border-emerald-200 p-8 text-center">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-9 h-9 text-emerald-600" />
+            <div className="bg-white rounded-2xl border border-yellow-200 p-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-yellow-50 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="w-9 h-9 text-yellow-500" />
               </div>
               <h1 className="text-xl font-bold text-gray-900 mb-2">¡Documento firmado!</h1>
               <p className="text-gray-500 text-sm mb-4">
@@ -153,8 +153,8 @@ export default function SignPage() {
               {/* Hero */}
               <div className="bg-white rounded-2xl border border-gray-200 p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-emerald-600" />
+                  <div className="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-yellow-600" />
                   </div>
                   <div>
                     <h1 className="font-bold text-gray-900">{data.instalacion.nombre}</h1>
@@ -199,7 +199,7 @@ export default function SignPage() {
                   </div>
                   <div className="flex justify-between py-2">
                     <span className="text-gray-500">Tu coeficiente β</span>
-                    <span className="font-bold text-emerald-600">
+                    <span className="font-bold text-gray-900">
                       {((data.participantes.find(p => p.cups === data.participante.cups)?.beta ?? 0) * 100).toFixed(4)}%
                     </span>
                   </div>
@@ -224,12 +224,12 @@ export default function SignPage() {
                       {data.participantes.map((p, i) => {
                         const isMe = p.cups === data.participante.cups;
                         return (
-                          <tr key={i} className={`border-b border-gray-50 ${isMe ? "bg-emerald-50" : ""}`}>
-                            <td className={`py-2.5 ${isMe ? "font-semibold text-emerald-700" : "text-gray-700"}`}>
-                              {p.nombre} {isMe && <span className="text-xs text-emerald-600 ml-1">(tú)</span>}
+                          <tr key={i} className={`border-b border-gray-50 ${isMe ? "bg-yellow-50" : ""}`}>
+                            <td className={`py-2.5 ${isMe ? "font-semibold text-gray-900" : "text-gray-700"}`}>
+                              {p.nombre} {isMe && <span className="text-xs text-yellow-600 ml-1">(tú)</span>}
                             </td>
                             <td className="py-2.5 text-gray-500 text-xs">{p.unidad ?? "—"}</td>
-                            <td className={`py-2.5 text-right font-mono text-xs ${isMe ? "font-bold text-emerald-700" : "text-gray-600"}`}>
+                            <td className={`py-2.5 text-right font-mono text-xs ${isMe ? "font-bold text-gray-900" : "text-gray-600"}`}>
                               {(p.beta * 100).toFixed(4)}%
                             </td>
                           </tr>
@@ -266,7 +266,7 @@ export default function SignPage() {
                     type="checkbox"
                     checked={confirmed}
                     onChange={e => setConfirmed(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 accent-emerald-600 flex-shrink-0"
+                    className="mt-0.5 w-4 h-4 accent-yellow-500 flex-shrink-0"
                   />
                   <span className="text-sm text-gray-700">
                     He leído el acuerdo de reparto y confirmo que los coeficientes β son correctos.
@@ -277,7 +277,7 @@ export default function SignPage() {
                 <button
                   onClick={handleSign}
                   disabled={!confirmed || state === "signing"}
-                  className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {state === "signing" ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

@@ -323,7 +323,7 @@ export function ParticipantesTab({
                     </TableCell>
                     <TableCell>
                       {validacion.valido ? (
-                        <div className="flex items-center gap-1 text-green-600">
+                        <div className="flex items-center gap-1 text-yellow-600">
                           <CheckCircle2 className="h-3.5 w-3.5" />
                           <span className="text-xs font-medium">Válido</span>
                         </div>

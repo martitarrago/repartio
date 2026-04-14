@@ -55,9 +55,9 @@ function buildEmailHtml({ participantName, communityName, link }: Omit<Signature
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f9fafb;font-family:system-ui,sans-serif">
   <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden">
-    <div style="background:linear-gradient(135deg,#059669,#34d399);padding:32px 40px">
+    <div style="background:linear-gradient(135deg,#111827,#1f2937);padding:32px 40px">
       <p style="margin:0;color:#fff;font-size:22px;font-weight:700">Acuerdo de reparto solar</p>
-      <p style="margin:8px 0 0;color:#a7f3d0;font-size:14px">${communityName}</p>
+      <p style="margin:8px 0 0;color:#EAB308;font-size:14px">${communityName}</p>
     </div>
     <div style="padding:32px 40px">
       <p style="margin:0 0 16px;color:#374151;font-size:15px">Hola <strong>${participantName}</strong>,</p>
@@ -65,7 +65,7 @@ function buildEmailHtml({ participantName, communityName, link }: Omit<Signature
         Te invitamos a firmar el acuerdo de reparto de energía solar de la comunidad <strong>${communityName}</strong>.
         Puedes revisar el documento y confirmar tu firma haciendo clic en el botón:
       </p>
-      <a href="${link}" style="display:inline-block;background:#059669;color:#fff;text-decoration:none;padding:14px 28px;border-radius:8px;font-size:15px;font-weight:600">
+      <a href="${link}" style="display:inline-block;background:#111827;color:#fff;text-decoration:none;padding:14px 28px;border-radius:8px;font-size:15px;font-weight:600">
         Revisar y firmar →
       </a>
       <p style="margin:24px 0 0;color:#9ca3af;font-size:12px;line-height:1.6">

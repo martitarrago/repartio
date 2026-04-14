@@ -6,7 +6,7 @@ const ESTADO: Record<
   InstalacionResumen["estado"],
   { label: string; className: string }
 > = {
-  ACTIVA:     { label: "Activa",     className: "bg-emerald-100 text-emerald-800" },
+  ACTIVA:     { label: "Activa",     className: "bg-yellow-100 text-yellow-800" },
   BORRADOR:   { label: "Borrador",   className: "bg-[#FEF9C3] text-[#A16207]" },
   SUSPENDIDA: { label: "Suspendida", className: "bg-[#FEF9C3] text-[#A16207]" },
   BAJA:       { label: "Baja",       className: "bg-[#FEF2F2] text-[#DC2626]" },

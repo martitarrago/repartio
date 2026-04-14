@@ -214,8 +214,8 @@ export function InstallationForm({
             )}
             {estadoGuardado === "guardado" && (
               <>
-                <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
-                <span className="text-green-600">Guardado</span>
+                <CheckCircle2 className="h-3.5 w-3.5 text-yellow-600" />
+                <span className="text-yellow-600">Guardado</span>
               </>
             )}
           </span>

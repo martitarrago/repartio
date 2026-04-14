@@ -53,7 +53,7 @@ export default function AuthLayout({
       <div className="flex flex-1 flex-col items-center justify-center bg-background px-6 py-12">
         {/* Mobile logo */}
         <div className="mb-8 flex items-center gap-2.5 lg:hidden">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg solar-gradient shadow-emerald">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg solar-gradient shadow-brand">
             <span className="text-xs text-white font-bold">⚡</span>
           </div>
           <span className="font-heading text-base font-semibold text-foreground">Repartio</span>

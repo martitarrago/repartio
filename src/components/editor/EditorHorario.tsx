@@ -196,7 +196,7 @@ function TablaTipoDia({
                       "border-t border-border px-1 py-1.5 text-center font-mono",
                       tieneValores
                         ? valido
-                          ? "text-green-600 font-medium"
+                          ? "text-yellow-600 font-medium"
                           : "text-destructive font-medium bg-destructive/5"
                         : "text-muted-foreground/40"
                     )}
@@ -322,11 +322,11 @@ function ImportadorCSV({
               </p>
               <p className="text-xs text-muted-foreground">Líneas totales</p>
             </div>
-            <div className="rounded-md border border-green-200 bg-green-50 p-3 text-center">
-              <p className="text-2xl font-bold tabular-nums text-green-700">
+            <div className="rounded-md border border-yellow-200 bg-yellow-50 p-3 text-center">
+              <p className="text-2xl font-bold tabular-nums text-yellow-700">
                 {resultado.filasValidas}
               </p>
-              <p className="text-xs text-green-600">Válidas</p>
+              <p className="text-xs text-yellow-600">Válidas</p>
             </div>
             <div
               className={cn(

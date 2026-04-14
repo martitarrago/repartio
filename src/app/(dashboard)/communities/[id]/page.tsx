@@ -161,7 +161,7 @@ export default function CommunityDetailPage() {
   const isEnviado = baseCommunity?.phase === "enviado";
   const isActivo = baseCommunity?.phase === "activo";
   const projectStatus = isActivo
-    ? { label: "Activo", className: "bg-green-100 text-green-700" }
+    ? { label: "Activo", className: "bg-yellow-100 text-yellow-700" }
     : isEnviado
     ? { label: "Enviado", className: "bg-blue-100 text-blue-700" }
     : allComplete

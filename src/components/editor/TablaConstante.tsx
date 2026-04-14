@@ -359,7 +359,7 @@ export function TablaConstante({
                       className={cn(
                         "h-1.5 flex-1",
                         sumaValida
-                          ? "[&>div]:bg-green-500"
+                          ? "[&>div]:bg-yellow-500"
                           : "[&>div]:bg-destructive"
                       )}
                     />

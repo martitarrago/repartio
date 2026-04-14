@@ -58,7 +58,7 @@ export default function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/dashboard">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg solar-gradient shadow-emerald flex-shrink-0">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg solar-gradient shadow-brand flex-shrink-0">
                   <span className="text-xs text-white font-bold">⚡</span>
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">

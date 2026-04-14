@@ -290,7 +290,7 @@ export function DocumentoTab({
                 className="flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs transition-colors hover:bg-accent"
               >
                 {copiado ? (
-                  <Check className="h-3.5 w-3.5 text-green-600" />
+                  <Check className="h-3.5 w-3.5 text-yellow-600" />
                 ) : (
                   <Copy className="h-3.5 w-3.5" />
                 )}

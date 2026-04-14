@@ -101,7 +101,7 @@ export function HistorialTab({ registros }: HistorialTabProps) {
                 </TableCell>
                 <TableCell>
                   {r.verificacionSuma ? (
-                    <div className="flex items-center gap-1 text-green-600">
+                    <div className="flex items-center gap-1 text-yellow-600">
                       <CheckCircle2 className="h-4 w-4" />
                       <span className="text-xs">OK</span>
                     </div>

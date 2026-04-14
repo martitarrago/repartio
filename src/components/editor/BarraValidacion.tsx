@@ -32,7 +32,7 @@ function IndicadorSuma({
             !tieneValor
               ? "text-muted-foreground"
               : valido
-              ? "text-green-600"
+              ? "text-yellow-600"
               : "text-destructive"
           )}
         >
@@ -43,7 +43,7 @@ function IndicadorSuma({
         value={porcentaje}
         className={cn(
           "h-1.5",
-          valido ? "[&>div]:bg-green-500" : "[&>div]:bg-destructive"
+          valido ? "[&>div]:bg-yellow-500" : "[&>div]:bg-destructive"
         )}
       />
       {tieneValor && !valido && (
@@ -87,7 +87,7 @@ function TarjetasTipoDia({
               sumas.length === 0
                 ? "border-border bg-muted/30"
                 : todasValidas
-                ? "border-green-200 bg-green-50"
+                ? "border-yellow-200 bg-yellow-50"
                 : "border-destructive/30 bg-destructive/5"
             )}
           >
@@ -138,10 +138,10 @@ export function BarraValidacion({ estado, modo, className }: BarraValidacionProp
         )}
 
         {estado.global ? (
-          <Alert className="border-green-200 bg-green-50">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <AlertTitle className="text-green-800">Reparto válido</AlertTitle>
-            <AlertDescription className="text-green-700 text-xs">
+          <Alert className="border-yellow-200 bg-yellow-50">
+            <CheckCircle2 className="h-4 w-4 text-yellow-600" />
+            <AlertTitle className="text-yellow-800">Reparto válido</AlertTitle>
+            <AlertDescription className="text-yellow-700 text-xs">
               La suma de coeficientes es exactamente 1,000000. El fichero puede
               generarse.
             </AlertDescription>
@@ -194,10 +194,10 @@ export function BarraValidacion({ estado, modo, className }: BarraValidacionProp
       <TarjetasTipoDia estado={estado} />
 
       {estado.global ? (
-        <Alert className="border-green-200 bg-green-50">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <AlertTitle className="text-green-800">Reparto válido</AlertTitle>
-          <AlertDescription className="text-green-700 text-xs">
+        <Alert className="border-yellow-200 bg-yellow-50">
+          <CheckCircle2 className="h-4 w-4 text-yellow-600" />
+          <AlertTitle className="text-yellow-800">Reparto válido</AlertTitle>
+          <AlertDescription className="text-yellow-700 text-xs">
             Las 72 horas (3 tipos × 24h) suman exactamente 1,000000. El fichero
             puede generarse.
           </AlertDescription>

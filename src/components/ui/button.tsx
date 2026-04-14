@@ -9,7 +9,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "solar-gradient text-white shadow-emerald hover:opacity-90 hover:-translate-y-px active:translate-y-0",
+          "bg-primary text-primary-foreground shadow-brand hover:opacity-90 hover:-translate-y-px active:translate-y-0",
         secondary:
           "border border-border bg-white text-foreground hover:bg-muted",
         outline:
@@ -20,8 +20,8 @@ const buttonVariants = cva(
           "text-muted-foreground hover:bg-muted hover:text-foreground",
         link:
           "text-primary underline-offset-4 hover:underline",
-        emerald:
-          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-emerald hover:-translate-y-px",
+        accent:
+          "bg-accent text-accent-foreground hover:bg-accent/90 shadow-brand hover:-translate-y-px",
       },
       size: {
         default: "h-8 px-4 py-2",

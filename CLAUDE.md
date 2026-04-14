@@ -45,17 +45,16 @@ These rules are non-negotiable — the file must pass distributor validation:
 
 ## Design system
 
-Stripe Dashboard style — clean, minimalist, B2B. Brand personality: clear, trustworthy, modern, direct.
+Stripe/Vercel style — clean, minimalist, B2B. Brand personality: clear, trustworthy, modern, direct.
 
 ### Colors
 
-- **Primary (Repartio Green):** `#059669` — buttons, CTAs, active states, sidebar, focus rings
-- **Accent (Solar Gold):** `#EAB308` — **only** for energy data, KPIs, charts. Never for buttons or decoration.
-- **Brand black:** `#111827` — titles, principal text, dark logo variant
-- **Background:** `#F9FAFB` (neutral, no green tint) · Cards: `#FFFFFF`
+- **Primary:** `#111827` (brand black) — buttons, CTAs, active states, text
+- **Accent (Solar Yellow):** `#EAB308` — highlights, focus rings, energy data, success states, brand accent
+- **Background:** `#F9FAFB` · Cards: `#FFFFFF`
 - **Text secondary:** `#6B7280` · Borders: `#E5E7EB`
 - **Destructive:** `#DC2626` · Warning: `#D97706` · Info: `#2563EB`
-- **Palette rule:** 80% neutrals · 15% green (primary) · 5% gold (energy data only)
+- **Palette rule:** 85% neutrals/black · 15% yellow (accent, energy, success)
 
 ### Typography
 
@@ -65,9 +64,10 @@ Stripe Dashboard style — clean, minimalist, B2B. Brand personality: clear, tru
 
 ### Logo
 
-- Logotype: "repartio" in Inter Bold, lowercase, `#111827` on light / `#FFFFFF` on dark
-- The dot on the "i" uses `#059669` as the only color accent
-- Favicon: letter "r" in white on `#059669` rounded square
+- Concept: tilted 3×3 solar panel grid — 8 black cells + 1 yellow cell (top-left, representing the sun)
+- Wordmark: "repartio" in Inter Medium, lowercase, `#111827`
+- Favicon: the solar panel grid icon alone
+- Auth gradient: dark-to-dark (`#111827` → `#1f2937`)
 
 ## Architecture
 

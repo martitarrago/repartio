@@ -194,7 +194,7 @@ export function VistaPrevia({
                 title="Copiar al portapapeles"
               >
                 {copiado ? (
-                  <Check className="h-3.5 w-3.5 text-green-400" />
+                  <Check className="h-3.5 w-3.5 text-yellow-400" />
                 ) : (
                   <Copy className="h-3.5 w-3.5" />
                 )}
