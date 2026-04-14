@@ -66,7 +66,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (!userScrolledUp.current) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streamingText]);
+  }, [messages]);
 
   const handleSend = async (text?: string) => {
     const msg = (text ?? input).trim();
@@ -74,6 +74,7 @@ export default function ChatPage() {
     setInput("");
     setNoApiKey(false);
 
+    userScrolledUp.current = false;
     const newMessages: ChatMessage[] = [...messages, { role: "user", content: msg }];
     setMessages(newMessages);
     setStreaming(true);

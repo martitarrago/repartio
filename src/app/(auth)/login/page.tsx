@@ -153,6 +153,11 @@ function LoginForm() {
           Crear cuenta
         </Link>
       </p>
+      <p className="mt-3 text-center text-[11px] text-[#C4C4C4]">
+        <Link href="/privacidad" className="hover:underline">Privacidad</Link>
+        {" · "}
+        <Link href="/legal" className="hover:underline">Aviso legal</Link>
+      </p>
     </div>
   );
 }

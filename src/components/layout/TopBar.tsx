@@ -35,8 +35,8 @@ export function TopBar() {
     >
       {/* Logo */}
       <Link href="/dashboard" className="flex items-center gap-2.5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-900">
-          <span className="text-xs font-bold" style={{ color: "#EF9F27" }}>⚡</span>
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-900 overflow-hidden flex-shrink-0">
+          <img src="/favicon.svg" alt="R" className="w-7 h-7" />
         </div>
         <span className="font-heading text-base font-semibold text-foreground">Repartio</span>
       </Link>

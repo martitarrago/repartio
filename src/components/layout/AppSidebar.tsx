@@ -58,8 +58,8 @@ export default function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/dashboard">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-900 flex-shrink-0">
-                  <span className="text-xs font-bold" style={{ color: "#EF9F27" }}>⚡</span>
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-900 flex-shrink-0 overflow-hidden">
+                  <img src="/favicon.svg" alt="R" className="w-8 h-8" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold font-heading">
