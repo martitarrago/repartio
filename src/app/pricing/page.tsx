@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { PublicHeader } from "@/components/PublicHeader";
 
 const plans = [
   {
@@ -61,9 +60,21 @@ const plans = [
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-[#F9FAFB]">
-      <PublicHeader />
+      {/* Back button */}
+      <div className="max-w-5xl mx-auto px-6 pt-6">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Volver
+        </Link>
+      </div>
+
       {/* Header */}
-      <div className="max-w-5xl mx-auto px-6 py-16 text-center">
+      <div className="max-w-5xl mx-auto px-6 py-10 text-center">
         {/* Beta banner */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EF9F27]/10 border border-[#EF9F27]/30 text-xs font-medium text-[#B8760A] mb-8">
           <span className="w-1.5 h-1.5 rounded-full bg-[#EF9F27] animate-pulse" />
@@ -134,10 +145,6 @@ export default function PricingPage() {
           <a href="mailto:hola@repartio.es" className="text-gray-600 underline hover:text-gray-900">
             Escríbenos
           </a>
-          {" · "}
-          <Link href="/login" className="text-gray-600 underline hover:text-gray-900">
-            Iniciar sesión
-          </Link>
         </p>
       </div>
     </div>

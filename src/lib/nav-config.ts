@@ -3,6 +3,7 @@ import {
   Users,
   MessageSquare,
   Settings,
+  CreditCard,
   type LucideIcon,
 } from "lucide-react";
 
@@ -54,6 +55,13 @@ export const navGroups: NavGroup[] = [
         title: "Configuración",
         url: "/settings",
         icon: Settings,
+        isActive: false,
+        items: [],
+      },
+      {
+        title: "Precios",
+        url: "/pricing",
+        icon: CreditCard,
         isActive: false,
         items: [],
       },

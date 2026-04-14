@@ -453,7 +453,6 @@ export default function SettingsPage() {
         <h1 className="text-xl font-bold font-heading text-foreground">Configuración</h1>
         <p className="text-muted-foreground text-sm mt-0.5">Gestiona tu cuenta, organización y equipo</p>
       </div>
-      <PlanSection />
       <ProfileSection />
       <PasswordSection />
       <OrganizationSection />
@@ -463,7 +462,6 @@ export default function SettingsPage() {
         <Link href="/privacidad" className="hover:text-foreground transition-colors">Política de privacidad</Link>
         <Link href="/terminos" className="hover:text-foreground transition-colors">Términos y condiciones</Link>
         <Link href="/legal" className="hover:text-foreground transition-colors">Aviso legal</Link>
-        <Link href="/pricing" className="hover:text-foreground transition-colors">Precios</Link>
       </div>
     </div>
   );

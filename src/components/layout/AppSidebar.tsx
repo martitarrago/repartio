@@ -53,26 +53,22 @@ export default function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       {/* ── Cabecera: logo ── */}
-      <SidebarHeader className="border-b border-sidebar-border">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href="/dashboard">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-900 flex-shrink-0 overflow-hidden">
-                  <img src="/favicon.svg" alt="R" className="w-8 h-8" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold font-heading">
-                    Repartio
-                  </span>
-                  <span className="truncate text-xs text-sidebar-foreground/60">
-                    Autoconsumo colectivo
-                  </span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarHeader className="border-b border-sidebar-border px-3 py-2.5">
+        <Link href="/dashboard" className="flex items-center h-9">
+          {/* Icono (visible cuando el sidebar está colapsado) */}
+          <img
+            src="/favicon.svg"
+            alt="R"
+            className="h-8 w-8 flex-shrink-0 hidden group-data-[collapsible=icon]:block"
+          />
+          {/* Logo completo (visible cuando está expandido) */}
+          <img
+            src="/logo-dark.svg"
+            alt="Repartio"
+            className="h-8 w-auto block group-data-[collapsible=icon]:hidden"
+            style={{ maxWidth: 130 }}
+          />
+        </Link>
       </SidebarHeader>
 
       {/* ── Navegación ── */}
