@@ -87,8 +87,8 @@ const config: Config = {
           900: "#064E3B",
         },
         solar: {
-          gold:  "hsl(43 96% 56%)",
-          light: "hsl(43 100% 90%)",
+          gold:  "hsl(45 93% 47%)",   /* #EAB308 */
+          light: "hsl(48 96% 89%)",    /* #FEF9C3 */
         },
       },
       borderRadius: {
@@ -102,7 +102,7 @@ const config: Config = {
         "card-hover": "0 4px 16px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.06)",
         glass:      "0 4px 24px -2px rgba(0,0,0,0.05), 0 2px 8px -1px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)",
         "lift":     "0 12px 32px rgba(0,0,0,0.09), 0 4px 12px rgba(0,0,0,0.06)",
-        emerald:    "0 4px 14px rgba(16,185,129,0.25)",
+        emerald:    "0 4px 14px rgba(5,150,105,0.25)",
       },
       keyframes: {
         "accordion-down": {

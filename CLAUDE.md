@@ -45,12 +45,29 @@ These rules are non-negotiable — the file must pass distributor validation:
 
 ## Design system
 
-Stripe Dashboard style — clean, minimalist, B2B.
+Stripe Dashboard style — clean, minimalist, B2B. Brand personality: clear, trustworthy, modern, direct.
 
-- **Palette:** 80% neutrals · 15% yellow (energy data) · 5% fuchsia (CTAs)
-- **Primary button:** `#FF2D8D`
-- **Background:** `#FAFAFA` · Cards: `#FFFFFF`
-- **Font:** system/Inter · 13px body
+### Colors
+
+- **Primary (Repartio Green):** `#059669` — buttons, CTAs, active states, sidebar, focus rings
+- **Accent (Solar Gold):** `#EAB308` — **only** for energy data, KPIs, charts. Never for buttons or decoration.
+- **Brand black:** `#111827` — titles, principal text, dark logo variant
+- **Background:** `#F9FAFB` (neutral, no green tint) · Cards: `#FFFFFF`
+- **Text secondary:** `#6B7280` · Borders: `#E5E7EB`
+- **Destructive:** `#DC2626` · Warning: `#D97706` · Info: `#2563EB`
+- **Palette rule:** 80% neutrals · 15% green (primary) · 5% gold (energy data only)
+
+### Typography
+
+- **Body:** Manrope (--font-manrope) · 13px · weight 400
+- **Headings:** Sora (--font-sora)
+- **Logo text:** Inter Bold, all lowercase
+
+### Logo
+
+- Logotype: "repartio" in Inter Bold, lowercase, `#111827` on light / `#FFFFFF` on dark
+- The dot on the "i" uses `#059669` as the only color accent
+- Favicon: letter "r" in white on `#059669` rounded square
 
 ## Architecture
 

@@ -81,7 +81,7 @@ export default function SignPage() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center">
             <Zap className="w-4 h-4 text-white" />
           </div>
           <span className="font-semibold text-gray-900">Repartio</span>
@@ -95,7 +95,7 @@ export default function SignPage() {
           {/* Loading */}
           {state === "loading" && (
             <div className="flex items-center justify-center py-24">
-              <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+              <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
             </div>
           )}
 
@@ -120,7 +120,7 @@ export default function SignPage() {
           {/* Already signed */}
           {state === "already_signed" && (
             <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
-              <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
+              <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto mb-3" />
               <h1 className="text-lg font-semibold text-gray-900 mb-2">Ya firmaste este documento</h1>
               <p className="text-gray-500 text-sm">Tu firma ya estaba registrada. No es necesario volver a firmar.</p>
             </div>
@@ -130,7 +130,7 @@ export default function SignPage() {
           {state === "signed" && (
             <div className="bg-white rounded-2xl border border-emerald-200 p-8 text-center">
               <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-9 h-9 text-emerald-500" />
+                <CheckCircle2 className="w-9 h-9 text-emerald-600" />
               </div>
               <h1 className="text-xl font-bold text-gray-900 mb-2">¡Documento firmado!</h1>
               <p className="text-gray-500 text-sm mb-4">
@@ -226,7 +226,7 @@ export default function SignPage() {
                         return (
                           <tr key={i} className={`border-b border-gray-50 ${isMe ? "bg-emerald-50" : ""}`}>
                             <td className={`py-2.5 ${isMe ? "font-semibold text-emerald-700" : "text-gray-700"}`}>
-                              {p.nombre} {isMe && <span className="text-xs text-emerald-500 ml-1">(tú)</span>}
+                              {p.nombre} {isMe && <span className="text-xs text-emerald-600 ml-1">(tú)</span>}
                             </td>
                             <td className="py-2.5 text-gray-500 text-xs">{p.unidad ?? "—"}</td>
                             <td className={`py-2.5 text-right font-mono text-xs ${isMe ? "font-bold text-emerald-700" : "text-gray-600"}`}>
@@ -266,7 +266,7 @@ export default function SignPage() {
                     type="checkbox"
                     checked={confirmed}
                     onChange={e => setConfirmed(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 accent-emerald-500 flex-shrink-0"
+                    className="mt-0.5 w-4 h-4 accent-emerald-600 flex-shrink-0"
                   />
                   <span className="text-sm text-gray-700">
                     He leído el acuerdo de reparto y confirmo que los coeficientes β son correctos.
@@ -277,7 +277,7 @@ export default function SignPage() {
                 <button
                   onClick={handleSign}
                   disabled={!confirmed || state === "signing"}
-                  className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl bg-emerald-500 text-white font-semibold text-sm hover:bg-emerald-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {state === "signing" ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

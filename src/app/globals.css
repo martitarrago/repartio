@@ -4,36 +4,36 @@
 
 @layer base {
   :root {
-    --background: 150 20% 98%;            /* #F7FAF8 subtle green tint */
-    --foreground: 220 9% 15%;             /* #1F2328 */
+    --background: 210 20% 98%;            /* #F9FAFB neutral, no green tint */
+    --foreground: 221 39% 11%;            /* #111827 brand black */
     --card: 0 0% 100%;
-    --card-foreground: 220 9% 15%;
+    --card-foreground: 221 39% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 9% 15%;
-    --border: 220 9% 91%;                 /* #E5E8EC */
-    --input: 220 9% 91%;
-    --muted: 220 9% 96%;                  /* #F4F5F6 */
-    --muted-foreground: 220 5% 46%;       /* #71767E */
-    --secondary: 220 9% 96%;
-    --secondary-foreground: 220 9% 15%;
-    --accent: 43 96% 56%;                 /* solar gold */
-    --accent-foreground: 43 50% 20%;
-    --primary: 160 84% 39%;               /* emerald */
+    --popover-foreground: 221 39% 11%;
+    --border: 220 13% 91%;               /* #E5E7EB */
+    --input: 220 13% 91%;
+    --muted: 220 14% 96%;                /* #F3F4F6 */
+    --muted-foreground: 220 9% 46%;      /* #6B7280 */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 221 39% 11%;
+    --accent: 45 93% 47%;                /* #EAB308 solar gold */
+    --accent-foreground: 45 50% 20%;
+    --primary: 161 94% 30%;              /* #059669 repartio green */
     --primary-foreground: 0 0% 100%;
-    --ring: 160 84% 39%;
-    --destructive: 0 72% 51%;
+    --ring: 161 94% 30%;
+    --destructive: 0 84% 60%;            /* #DC2626 */
     --destructive-foreground: 0 0% 100%;
     --radius: 0.75rem;
 
     /* Sidebar */
     --sidebar: 0 0% 100%;
-    --sidebar-foreground: 220 9% 15%;
-    --sidebar-primary: 160 84% 39%;
+    --sidebar-foreground: 221 39% 11%;
+    --sidebar-primary: 161 94% 30%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 9% 96%;
-    --sidebar-accent-foreground: 220 9% 15%;
-    --sidebar-border: 220 9% 91%;
-    --sidebar-ring: 160 84% 39%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 221 39% 11%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 161 94% 30%;
   }
 }
 
@@ -82,15 +82,15 @@
   }
 
   .solar-gradient {
-    background: linear-gradient(135deg, hsl(160 84% 39%), hsl(43 96% 56%));
+    background: linear-gradient(135deg, hsl(161 94% 30%), hsl(45 93% 47%));
   }
 
   .mint-gradient {
-    background: linear-gradient(135deg, hsl(160 84% 39%), hsl(168 80% 52%));
+    background: linear-gradient(135deg, hsl(161 94% 30%), hsl(160 84% 45%));
   }
 
   .solar-gradient-text {
-    background: linear-gradient(135deg, hsl(160 84% 39%), hsl(43 96% 56%));
+    background: linear-gradient(135deg, hsl(161 94% 30%), hsl(45 93% 47%));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -107,13 +107,13 @@
   }
 
   .badge-success {
-    background-color: hsl(160 60% 93%);
-    color: hsl(160 84% 30%);
+    background-color: hsl(161 60% 93%);
+    color: hsl(161 94% 24%);
   }
 
   .badge-active {
-    background-color: hsl(160 84% 39% / 0.1);
-    color: hsl(160 84% 32%);
+    background-color: hsl(161 94% 30% / 0.1);
+    color: hsl(161 94% 24%);
   }
 }
 
