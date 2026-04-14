@@ -5,9 +5,15 @@ import { Send, CheckCircle2, Clock, PenLine, XCircle, Mail, Loader2, Wifi, Copy,
 import { type Community } from "@/lib/types/community";
 import { supabase } from "@/lib/supabase";
 
+interface ValidationIssue {
+  type: "error" | "warning";
+  message: string;
+}
+
 interface SignaturesTabProps {
   community?: Community;
   communityId?: string;
+  validationErrors?: ValidationIssue[];
 }
 
 interface Signer {
@@ -26,7 +32,8 @@ function stateFromDb(estado: string): "signed" | "pending" | "rejected" {
   return "pending";
 }
 
-export function SignaturesTab({ community, communityId }: SignaturesTabProps) {
+export function SignaturesTab({ community, communityId, validationErrors = [] }: SignaturesTabProps) {
+  const hasErrors = validationErrors.length > 0;
   const participants = community?.participants.filter(p => p.status !== "exited") || [];
 
   const [signers, setSigners] = useState<Signer[]>(
@@ -154,8 +161,9 @@ export function SignaturesTab({ community, communityId }: SignaturesTabProps) {
           <div className="flex gap-2">
             <button
               onClick={() => handleRequestSignatures()}
-              disabled={sendingSignatures}
+              disabled={sendingSignatures || hasErrors}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+              title={hasErrors ? "Corrige los errores de la comunidad antes de solicitar firmas" : undefined}
             >
               {sendingSignatures ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
               Solicitar firmas
@@ -171,6 +179,18 @@ export function SignaturesTab({ community, communityId }: SignaturesTabProps) {
             </button>
           </div>
         </div>
+
+        {hasErrors && (
+          <div className="flex items-start gap-2 px-4 py-3 rounded-xl bg-destructive/10 text-destructive text-xs mb-4">
+            <XCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">Corrige estos errores antes de solicitar firmas:</p>
+              <ul className="mt-1 space-y-0.5">
+                {validationErrors.map((e, i) => <li key={i}>• {e.message}</li>)}
+              </ul>
+            </div>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mb-4">

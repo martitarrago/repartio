@@ -51,12 +51,21 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const userScrolledUp = useRef(false);
 
   useEffect(() => {
     const container = messagesContainerRef.current;
-    if (!container) { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); return; }
-    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
-    if (isNearBottom) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!container) return;
+    const onScroll = () => {
+      const atBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
+      userScrolledUp.current = !atBottom;
+    };
+    container.addEventListener("scroll", onScroll);
+    return () => container.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!userScrolledUp.current) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingText]);
 
   const handleSend = async (text?: string) => {

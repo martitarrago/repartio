@@ -24,6 +24,7 @@ const COLORS = [
 export function BetaCoefficients({ participants, mode, onModeChange, onParticipantsChange, communityId, conjuntoId, onSaved }: BetaCoefficientsProps) {
   const [showSuggestionPanel, setShowSuggestionPanel] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<SuggestionMethod>("equal");
+  const [showVariableMsg, setShowVariableMsg] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedOk, setSavedOk] = useState(false);
 
@@ -46,22 +47,6 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
 
     switch (method) {
       case "equal": betas = active.map(() => 1 / active.length); break;
-      case "quota": {
-        const total = active.reduce((s, p) => s + (p.cuotaParticipacion || 1), 0);
-        betas = active.map(p => (p.cuotaParticipacion || 1) / total); break;
-      }
-      case "consumption": {
-        const total = active.reduce((s, p) => s + (p.consumoAnual || 1), 0);
-        betas = active.map(p => (p.consumoAnual || 1) / total); break;
-      }
-      case "power": {
-        const total = active.reduce((s, p) => s + (p.potenciaContratada || 1), 0);
-        betas = active.map(p => (p.potenciaContratada || 1) / total); break;
-      }
-      case "investment": {
-        const total = active.reduce((s, p) => s + (p.inversionAportada || 1), 0);
-        betas = active.map(p => (p.inversionAportada || 1) / total); break;
-      }
     }
 
     const sum = betas.reduce((s, b) => s + b, 0);
@@ -136,22 +121,28 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
             β Fijos
           </button>
           <button
-            onClick={() => onModeChange("variable")}
-            className={`px-3 py-1.5 rounded-lg transition-all ${mode === "variable" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+            onClick={() => setShowVariableMsg(v => !v)}
+            className="px-3 py-1.5 rounded-lg transition-all text-muted-foreground hover:text-foreground"
           >
             β Variables (h)
           </button>
         </div>
 
+        {showVariableMsg && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/10 text-xs text-accent-foreground">
+            <Sparkles className="w-3.5 h-3.5 text-accent flex-shrink-0" />
+            <span>Próximamente: beta basado en datos de consumo de cada vecino para maximizar ahorro global.</span>
+          </div>
+        )}
+
         <div className="flex-1" />
 
         <button
-          onClick={() => setShowSuggestionPanel(!showSuggestionPanel)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white font-medium text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20"
+          onClick={() => applySuggestion("equal")}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-medium hover:bg-secondary/80 transition-colors"
         >
           <Calculator className="w-4 h-4" />
-          Calculadora β
-          <ChevronDown className={`w-3 h-3 transition-transform ${showSuggestionPanel ? "rotate-180" : ""}`} />
+          Partes iguales
         </button>
 
         <button
@@ -176,33 +167,6 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
           {saving ? "Guardando..." : savedOk ? "Guardado" : "Guardar coeficientes"}
         </button>
       </div>
-
-      {/* Smart suggestion panel */}
-      {showSuggestionPanel && (
-        <div className="glass-card rounded-2xl p-5 animate-scale-in space-y-4">
-          <div className="flex items-center gap-2 text-sm">
-            <Sparkles className="w-4 h-4 text-accent" />
-            <span className="font-heading font-semibold text-foreground">Calculadora inteligente de coeficientes</span>
-          </div>
-          <p className="text-xs text-muted-foreground">Elige un criterio y calcularemos automáticamente los coeficientes β de cada participante.</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            {SUGGESTION_METHODS.map(m => (
-              <button
-                key={m.id}
-                onClick={() => { setSelectedMethod(m.id); applySuggestion(m.id); }}
-                className={`text-left px-4 py-3 rounded-xl border transition-all text-sm ${
-                  selectedMethod === m.id
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border bg-secondary/50 text-foreground hover:border-primary/30"
-                }`}
-              >
-                <p className="font-medium">{m.label}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Validation bar */}
       <div className="glass-card rounded-xl px-4 py-3">

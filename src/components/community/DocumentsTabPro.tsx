@@ -194,6 +194,7 @@ export function DocumentsTabPro({ community, communityId }: DocumentsTabProProps
       {/* Upload section */}
       <div className="glass-card rounded-2xl p-5 space-y-3">
         <h3 className="font-heading font-semibold text-sm">Subir documento</h3>
+        <p className="text-xs text-muted-foreground">Guarda aquí toda la documentación de esta comunidad para tenerla organizada y accesible en el futuro.</p>
         <div className="flex flex-col sm:flex-row gap-3">
           <select
             value={selectedTipo}

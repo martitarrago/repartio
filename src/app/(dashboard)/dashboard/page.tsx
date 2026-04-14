@@ -161,12 +161,21 @@ function ChatPanel({
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const userScrolledUp = useRef(false);
 
   useEffect(() => {
     const container = chatContainerRef.current;
-    if (!container) { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); return; }
-    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
-    if (isNearBottom) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!container) return;
+    const onScroll = () => {
+      const atBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
+      userScrolledUp.current = !atBottom;
+    };
+    container.addEventListener("scroll", onScroll);
+    return () => container.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!userScrolledUp.current) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingText]);
 
   return (
@@ -316,9 +325,9 @@ function CommunityRow({ community: com, onNavigate, onEnviado }: { community: De
           )}
           <button
             onClick={(e) => { e.stopPropagation(); onNavigate(); }}
-            className="flex items-center gap-1 text-xs text-primary hover:underline mt-1"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium mt-2 hover:opacity-90 transition-opacity"
           >
-            Ir a la comunidad <ExternalLink className="w-3 h-3" />
+            Arreglar problema ahora
           </button>
         </div>
       </div>

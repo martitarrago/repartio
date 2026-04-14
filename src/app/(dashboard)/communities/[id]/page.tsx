@@ -232,7 +232,7 @@ export default function CommunityDetailPage() {
                 }`}
               >
                 {status === "complete" ? (
-                  <CheckCircle2 className="text-primary flex-shrink-0" style={{ width: 18, height: 18 }} />
+                  <CheckCircle2 className="text-yellow-500 flex-shrink-0" style={{ width: 18, height: 18 }} />
                 ) : status === "error" ? (
                   <AlertCircle className="text-destructive flex-shrink-0" style={{ width: 18, height: 18 }} />
                 ) : (
@@ -433,7 +433,7 @@ export default function CommunityDetailPage() {
         )}
 
         {activeStep === "firmas" && (
-          <SignaturesTab community={community} communityId={id} />
+          <SignaturesTab community={community} communityId={id} validationErrors={errors} />
         )}
       </div>
     </div>

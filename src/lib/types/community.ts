@@ -47,14 +47,10 @@ export const DISTRIBUIDORAS: { id: Distribuidora; label: string; codes: string[]
 ];
 
 export type CoeficientMode = "fixed" | "variable";
-export type SuggestionMethod = "equal" | "quota" | "consumption" | "power" | "investment";
+export type SuggestionMethod = "equal";
 
 export const SUGGESTION_METHODS: { id: SuggestionMethod; label: string; description: string }[] = [
   { id: "equal", label: "Partes iguales", description: "Mismo porcentaje para todos" },
-  { id: "quota", label: "Por cuota de participación", description: "Según coeficiente de propiedad" },
-  { id: "consumption", label: "Por consumo histórico", description: "Proporcional al consumo anual" },
-  { id: "power", label: "Por potencia contratada", description: "Según kW contratados" },
-  { id: "investment", label: "Por inversión", description: "Según aportación económica" },
 ];
 
 export type SignatureState = "signed" | "pending" | "rejected";
