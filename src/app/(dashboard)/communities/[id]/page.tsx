@@ -1,7 +1,8 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { MapPin, Users, Zap, FileText, AlertCircle, AlertTriangle, CheckCircle2, X, Building2, Hash, Circle, PenLine, Loader2, Send } from "lucide-react";
+import { MapPin, Users, Zap, FileText, AlertCircle, AlertTriangle, CheckCircle2, X, Building2, Hash, Circle, PenLine, Loader2, Send, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { BetaCoefficients } from "@/components/community/BetaCoefficients";
 import { ParticipantsListPro } from "@/components/community/ParticipantsListPro";
@@ -37,6 +38,8 @@ export default function CommunityDetailPage() {
   const [markingEnviado, setMarkingEnviado] = useState(false);
   const [activeStep, setActiveStep] = useState<StepId>("detalles");
   const [dismissedBanner, setDismissedBanner] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const [conjuntoId, setConjuntoId] = useState<string | undefined>(undefined);
 
   // Community state
@@ -112,6 +115,15 @@ export default function CommunityDetailPage() {
     setSaving(false);
     setTimeout(() => setSaveResult(null), 3000);
   }, [id, name, address, city, postalCode, cif, admin, cau, power, modality, connectionType, proximity, gestorEnabled, gestorName, gestorNif]);
+
+  const handleDelete = useCallback(async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/communities/${id}`, { method: "DELETE" });
+      if (res.ok) router.push("/communities");
+    } catch {}
+    setDeleting(false);
+  }, [id, router]);
 
   const handleMarkEnviado = useCallback(async () => {
     setMarkingEnviado(true);
@@ -215,6 +227,38 @@ export default function CommunityDetailPage() {
             Enviado a distribuidora
           </div>
         )}
+        <AlertDialog onOpenChange={() => setDeleteConfirmText("")}>
+          <AlertDialogTrigger asChild>
+            <button className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" title="Eliminar comunidad">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Eliminar comunidad</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción es irreversible. Escribe <strong>{name}</strong> para confirmar.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={e => setDeleteConfirmText(e.target.value)}
+              placeholder="Escribe el nombre de la comunidad"
+              className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-1 focus:ring-destructive/30"
+            />
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={deleteConfirmText !== name || deleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+              >
+                {deleting ? "Eliminando..." : "Eliminar"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {/* Stepper */}

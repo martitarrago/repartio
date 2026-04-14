@@ -447,9 +447,18 @@ export default function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto px-8 py-8 space-y-6 animate-fade-in pb-6">
       {/* Welcome */}
-      <div>
-        <h1 className="text-2xl font-bold font-heading text-foreground">Panel de Control</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Resumen del estado de todas tus comunidades</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold font-heading text-foreground">Panel de Control</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Resumen del estado de todas tus comunidades</p>
+        </div>
+        <a
+          href="/communities/new"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-opacity"
+          style={{ background: "#EF9F27" }}
+        >
+          + Nueva comunidad
+        </a>
       </div>
 
       {/* AI Chat input */}
