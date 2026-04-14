@@ -159,7 +159,7 @@ export function TxtGeneratorTabPro({ community, communityId, conjuntoId }: TxtGe
             <button
               onClick={handleGenerate}
               disabled={!isValid || generating}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl mint-gradient text-white font-medium text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white font-medium text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {generating ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

@@ -49,10 +49,14 @@ export default function ChatPage() {
   const [streamingText, setStreamingText] = useState("");
   const [noApiKey, setNoApiKey] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = messagesContainerRef.current;
+    if (!container) { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); return; }
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+    if (isNearBottom) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingText]);
 
   const handleSend = async (text?: string) => {
@@ -121,7 +125,7 @@ export default function ChatPage() {
       </div>
 
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-6 py-6">
         <div className="max-w-2xl mx-auto space-y-4">
           {/* Empty state */}
           {messages.length === 0 && !streaming && (

@@ -196,7 +196,7 @@ export function SignaturesTab({ community, communityId }: SignaturesTabProps) {
           </div>
           <div className="h-3 bg-muted rounded-full overflow-hidden">
             <div
-              className="h-full rounded-full mint-gradient transition-all duration-700 ease-out"
+              className="h-full rounded-full bg-primary transition-all duration-700 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>

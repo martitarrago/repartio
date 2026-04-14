@@ -147,7 +147,7 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
 
         <button
           onClick={() => setShowSuggestionPanel(!showSuggestionPanel)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl mint-gradient text-white font-medium text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white font-medium text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20"
         >
           <Calculator className="w-4 h-4" />
           Calculadora β
@@ -225,7 +225,7 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
         <div className="h-2.5 bg-muted rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ease-out ${
-              isComplete ? "mint-gradient" : isOver ? "bg-destructive" : "bg-accent/70"
+              isComplete ? "bg-primary" : isOver ? "bg-destructive" : "bg-accent/70"
             }`}
             style={{ width: `${Math.min(totalPercent, 100)}%` }}
           />
@@ -340,7 +340,7 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
                   <input
                     type="range"
                     min={0}
-                    max={50}
+                    max={100}
                     step={0.1}
                     value={pct}
                     onChange={(e) => updateBeta(p.id, parseFloat(e.target.value))}
@@ -348,7 +348,7 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
                   />
                   <div
                     className="absolute w-4 h-4 rounded-full border-2 border-card shadow-sm transition-all duration-200 pointer-events-none"
-                    style={{ left: `calc(${pct * 2}% - 8px)`, background: COLORS[i % COLORS.length] }}
+                    style={{ left: `calc(${pct}% - 8px)`, background: COLORS[i % COLORS.length] }}
                   />
                 </div>
               </div>

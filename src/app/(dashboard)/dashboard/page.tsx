@@ -160,9 +160,13 @@ function ChatPanel({
   noApiKey: boolean;
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = chatContainerRef.current;
+    if (!container) { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); return; }
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+    if (isNearBottom) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingText]);
 
   return (
@@ -187,7 +191,7 @@ function ChatPanel({
       )}
 
       {/* Messages */}
-      <div className="h-72 overflow-y-auto p-4 space-y-3">
+      <div ref={chatContainerRef} className="h-72 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && !streaming && (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <Bot className="w-10 h-10 text-muted-foreground/30 mb-2" />

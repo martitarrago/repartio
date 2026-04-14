@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
-  FileText, Download, Eye, Clock, CheckCircle2, Loader2, Sparkles, Printer,
+  FileText, Download, Eye, Clock, CheckCircle2, Loader2, Sparkles,
   Upload, Trash2, X, AlertCircle,
 } from "lucide-react";
 import { type Community } from "@/lib/types/community";
-import { generateAgreementHTML, downloadAgreementHTML, printAgreement } from "@/lib/agreement-generator";
+import { generateAgreementHTML, downloadAgreementHTML } from "@/lib/agreement-generator";
 
 interface ApiDocument {
   id: string;
@@ -78,10 +78,6 @@ export function DocumentsTabPro({ community, communityId }: DocumentsTabProProps
     setPreviewHtml(generateAgreementHTML(community));
   };
 
-  const handlePrint = () => {
-    if (!community) return;
-    printAgreement(community);
-  };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -142,7 +138,7 @@ export function DocumentsTabPro({ community, communityId }: DocumentsTabProProps
     <div className="space-y-6 animate-fade-in">
       {/* Generate Acuerdo */}
       <div className="glass-card rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-4 relative overflow-hidden">
-        <div className="w-14 h-14 rounded-2xl mint-gradient flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
+        <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
           {generating ? (
             <Loader2 className="w-7 h-7 text-white animate-spin" />
           ) : (
@@ -170,15 +166,8 @@ export function DocumentsTabPro({ community, communityId }: DocumentsTabProProps
               Vista previa
             </button>
             <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-medium hover:bg-secondary/80 transition-colors"
-            >
-              <Printer className="w-4 h-4" />
-              Imprimir
-            </button>
-            <button
               onClick={handleGenerateAgreement}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl mint-gradient text-white font-medium text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-medium text-sm hover:opacity-90 transition-opacity shadow-md shadow-primary/20"
             >
               <Sparkles className="w-4 h-4" />
               Descargar
@@ -237,7 +226,7 @@ export function DocumentsTabPro({ community, communityId }: DocumentsTabProProps
           <div className="space-y-1">
             <div className="h-1.5 bg-muted rounded-full overflow-hidden">
               <div
-                className="h-full mint-gradient transition-all duration-300"
+                className="h-full bg-primary transition-all duration-300"
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>

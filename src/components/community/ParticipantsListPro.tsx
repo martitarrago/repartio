@@ -217,9 +217,6 @@ function ParticipantRow({
         >
           <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
         </button>
-        <button className="p-1.5 rounded-lg hover:bg-secondary" title="Enviar email">
-          <Mail className="w-3.5 h-3.5 text-muted-foreground" />
-        </button>
         <button
           onClick={() => onToggleExit(p.id)}
           className="p-1.5 rounded-lg hover:bg-secondary"
@@ -348,13 +345,9 @@ export function ParticipantsListPro({ participants, onParticipantsChange, commun
           </p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-secondary text-secondary-foreground text-xs font-medium hover:bg-secondary/80 transition-colors">
-            <Upload className="w-3.5 h-3.5" />
-            Importar Excel
-          </button>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl mint-gradient text-white font-medium text-xs hover:opacity-90 transition-opacity shadow-md shadow-primary/20"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white font-medium text-xs hover:opacity-90 transition-opacity shadow-md shadow-primary/20"
           >
             {showAddForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
             {showAddForm ? "Cancelar" : "Añadir"}

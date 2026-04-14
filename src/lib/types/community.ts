@@ -136,7 +136,7 @@ export function validateCUPS(cups: string): { valid: boolean; error?: string } {
   if (!cups) return { valid: false, error: "CUPS obligatorio" };
   const clean = cups.replace(/\s/g, "").toUpperCase();
   if (clean.length !== 22) return { valid: false, error: `Debe tener 22 caracteres (tiene ${clean.length})` };
-  if (!/^ES\d{16}[A-Z0-9]{2}[A-Z]{2}$/.test(clean)) return { valid: false, error: "Formato inválido. Ej: ES0021000000000001AA1P" };
+  if (!/^ES\d{16}[A-Z0-9]{4}$/.test(clean)) return { valid: false, error: "Formato inválido. Ej: ES0021000000000001AA1P" };
   return { valid: true };
 }
 
