@@ -36,9 +36,9 @@ export default function AuthLayout({
           <Image
             src="/logo-dark.svg"
             alt="Repartio"
-            width={160}
-            height={47}
-            style={{ width: 160, height: "auto" }}
+            width={220}
+            height={65}
+            style={{ width: 220, height: "auto" }}
             priority
           />
         </div>

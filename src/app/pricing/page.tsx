@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PublicHeader } from "@/components/PublicHeader";
 
 const plans = [
   {
@@ -60,6 +61,7 @@ const plans = [
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-[#F9FAFB]">
+      <PublicHeader />
       {/* Header */}
       <div className="max-w-5xl mx-auto px-6 py-16 text-center">
         {/* Beta banner */}

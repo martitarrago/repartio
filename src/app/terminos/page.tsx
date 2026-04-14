@@ -1,5 +1,9 @@
+import { PublicHeader } from "@/components/PublicHeader";
+
 export default function TerminosPage() {
   return (
+    <div className="min-h-screen bg-white">
+      <PublicHeader />
     <div className="max-w-3xl mx-auto px-6 py-16 text-sm text-gray-700 space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Términos y Condiciones de Uso</h1>
@@ -78,6 +82,7 @@ export default function TerminosPage() {
           a los tribunales competentes según la normativa aplicable.
         </p>
       </section>
+    </div>
     </div>
   );
 }

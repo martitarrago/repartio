@@ -458,6 +458,13 @@ export default function SettingsPage() {
       <PasswordSection />
       <OrganizationSection />
       <TeamSection />
+
+      <div className="pt-4 border-t border-border flex flex-wrap gap-4 text-xs text-muted-foreground">
+        <Link href="/privacidad" className="hover:text-foreground transition-colors">Política de privacidad</Link>
+        <Link href="/terminos" className="hover:text-foreground transition-colors">Términos y condiciones</Link>
+        <Link href="/legal" className="hover:text-foreground transition-colors">Aviso legal</Link>
+        <Link href="/pricing" className="hover:text-foreground transition-colors">Precios</Link>
+      </div>
     </div>
   );
 }
