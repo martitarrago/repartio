@@ -1,11 +1,16 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
     Credentials({
       credentials: {
         email: { label: "Email", type: "email" },
@@ -49,7 +54,43 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    async signIn({ user, account }) {
+      if (account?.provider === "google" && user.email) {
+        const existing = await prisma.usuario.findUnique({ where: { email: user.email } });
+        if (!existing) {
+          const org = await prisma.organizacion.create({
+            data: { nombre: user.name || "Mi organización" },
+          });
+          await prisma.usuario.create({
+            data: {
+              email: user.email,
+              nombre: user.name?.split(" ")[0] || "",
+              apellidos: user.name?.split(" ").slice(1).join(" ") || "",
+              passwordHash: "",
+              organizacionId: org.id,
+              rol: "ADMIN",
+              activo: true,
+            },
+          });
+        }
+      }
+      return true;
+    },
+    async jwt({ token, user, account }) {
+      if (account?.provider === "google" && token.email) {
+        const dbUser = await prisma.usuario.findUnique({
+          where: { email: token.email },
+          include: { organizacion: true },
+        });
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.organizacionId = dbUser.organizacionId;
+          token.organizacion = dbUser.organizacion.nombre;
+          token.rol = dbUser.rol;
+          await prisma.usuario.update({ where: { id: dbUser.id }, data: { ultimoAcceso: new Date() } });
+        }
+        return token;
+      }
       if (user) {
         token.id = user.id;
         token.organizacionId = (user as any).organizacionId;
