@@ -16,11 +16,11 @@
     --muted-foreground: 220 9% 46%;      /* #6B7280 */
     --secondary: 220 14% 96%;
     --secondary-foreground: 221 39% 11%;
-    --accent: 45 93% 47%;                /* #EAB308 solar yellow */
-    --accent-foreground: 45 80% 16%;
+    --accent: 37 86% 54%;                /* #EF9F27 solar yellow */
+    --accent-foreground: 37 80% 16%;
     --primary: 221 39% 11%;              /* #111827 brand black */
     --primary-foreground: 0 0% 100%;
-    --ring: 45 93% 47%;                  /* #EAB308 yellow focus ring */
+    --ring: 37 86% 54%;                  /* #EF9F27 yellow focus ring */
     --destructive: 0 84% 60%;            /* #DC2626 */
     --destructive-foreground: 0 0% 100%;
     --radius: 0.75rem;
@@ -33,7 +33,7 @@
     --sidebar-accent: 220 14% 96%;
     --sidebar-accent-foreground: 221 39% 11%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 45 93% 47%;
+    --sidebar-ring: 37 86% 54%;
   }
 }
 

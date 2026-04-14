@@ -5,27 +5,20 @@ export default function AuthLayout({
 }) {
   return (
     <div className="flex min-h-screen">
-      {/* Left panel — solar gradient */}
-      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden p-12 lg:flex solar-gradient">
-        {/* Decorative glow blobs */}
+      {/* Left panel — brand black */}
+      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden p-12 lg:flex bg-gray-900">
+        {/* Decorative glow blob — yellow solar accent */}
         <div
-          className="pointer-events-none absolute right-[-60px] top-[20%] h-[280px] w-[280px] rounded-full"
+          className="pointer-events-none absolute right-[-80px] top-[15%] h-[320px] w-[320px] rounded-full"
           style={{
-            background: "radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%)",
-            filter: "blur(40px)",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute left-[-40px] bottom-[25%] h-[200px] w-[200px] rounded-full"
-          style={{
-            background: "radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)",
-            filter: "blur(30px)",
+            background: "radial-gradient(circle, rgba(239,159,39,0.12) 0%, rgba(239,159,39,0) 70%)",
+            filter: "blur(60px)",
           }}
         />
 
         <div className="relative z-10 flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm">
-            <span className="text-sm text-white font-bold">⚡</span>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black">
+            <span className="text-sm font-bold" style={{ color: "#EF9F27" }}>⚡</span>
           </div>
           <span className="font-heading text-lg font-semibold text-white">Repartio</span>
         </div>
@@ -53,8 +46,8 @@ export default function AuthLayout({
       <div className="flex flex-1 flex-col items-center justify-center bg-background px-6 py-12">
         {/* Mobile logo */}
         <div className="mb-8 flex items-center gap-2.5 lg:hidden">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg solar-gradient shadow-brand">
-            <span className="text-xs text-white font-bold">⚡</span>
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-900">
+            <span className="text-xs font-bold" style={{ color: "#EF9F27" }}>⚡</span>
           </div>
           <span className="font-heading text-base font-semibold text-foreground">Repartio</span>
         </div>

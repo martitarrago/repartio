@@ -58,8 +58,8 @@ export default function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/dashboard">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg solar-gradient shadow-brand flex-shrink-0">
-                  <span className="text-xs text-white font-bold">⚡</span>
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-900 flex-shrink-0">
+                  <span className="text-xs font-bold" style={{ color: "#EF9F27" }}>⚡</span>
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold font-heading">
@@ -159,7 +159,7 @@ export default function AppSidebar() {
                   size="lg"
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full solar-gradient text-[11px] font-semibold text-white flex-shrink-0">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-900 text-[11px] font-semibold text-white flex-shrink-0">
                     {iniciales}
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
@@ -179,7 +179,7 @@ export default function AppSidebar() {
               >
                 <DropdownMenuLabel className="p-0 font-normal">
                   <div className="flex items-center gap-2 px-1 py-1.5">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full solar-gradient text-[11px] font-semibold text-white flex-shrink-0">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-900 text-[11px] font-semibold text-white flex-shrink-0">
                       {iniciales}
                     </div>
                     <div className="grid flex-1 text-left text-sm leading-tight">

@@ -82,7 +82,7 @@ export default function SignPage() {
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center">
-            <Zap className="w-4 h-4 text-yellow-400" />
+            <Zap className="w-4 h-4" style={{ color: "#EF9F27" }} />
           </div>
           <span className="font-semibold text-gray-900">Repartio</span>
           <span className="text-gray-400 text-sm ml-2">Firma de acuerdo</span>

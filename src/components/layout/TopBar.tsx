@@ -35,8 +35,8 @@ export function TopBar() {
     >
       {/* Logo */}
       <Link href="/dashboard" className="flex items-center gap-2.5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg solar-gradient shadow-brand">
-          <span className="text-xs text-white font-bold">⚡</span>
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-900">
+          <span className="text-xs font-bold" style={{ color: "#EF9F27" }}>⚡</span>
         </div>
         <span className="font-heading text-base font-semibold text-foreground">Repartio</span>
       </Link>
@@ -45,7 +45,7 @@ export function TopBar() {
       <div className="relative" ref={ref}>
         <button
           onClick={() => setOpen((v) => !v)}
-          className="flex h-8 w-8 items-center justify-center rounded-full solar-gradient text-[11px] font-semibold text-white shadow-brand transition-opacity hover:opacity-90"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-900 text-[11px] font-semibold text-white transition-opacity hover:opacity-80"
         >
           {iniciales}
         </button>
