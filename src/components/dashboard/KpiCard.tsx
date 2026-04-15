@@ -37,21 +37,19 @@ export function KpiCard({ title, value, suffix = "", prefix = "", icon: Icon, tr
   }, [value, delay]);
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5 hover-lift">
-      <div className="flex items-center gap-2.5 mb-3">
-        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Icon className="w-4 h-4 text-primary" />
-        </div>
-        <span className="text-xs text-muted-foreground flex-1">{title}</span>
+    <div className="group relative rounded-lg border border-border bg-card p-5 transition-colors hover:border-foreground/15">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-muted-foreground">{title}</span>
+        <Icon className="h-3.5 w-3.5 text-muted-foreground/60" />
+      </div>
+      <div className="mt-4 flex items-baseline gap-1.5">
+        <p className="font-heading text-[28px] font-semibold leading-none tracking-tight text-foreground tabular-nums">
+          {prefix}{displayValue.toLocaleString("es-ES")}{suffix}
+        </p>
         {trend && (
-          <span className="text-[11px] font-medium text-primary">
-            {trend}
-          </span>
+          <span className="text-xs font-medium text-emerald-600 tabular-nums">{trend}</span>
         )}
       </div>
-      <p className="text-2xl font-bold text-foreground tabular-nums">
-        {prefix}{displayValue.toLocaleString("es-ES")}{suffix}
-      </p>
     </div>
   );
 }

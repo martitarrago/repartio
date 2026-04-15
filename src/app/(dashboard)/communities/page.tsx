@@ -97,13 +97,13 @@ export default function CommunitiesPage() {
   }, [communitiesData, search, filter, sortBy]);
 
   return (
-    <FadeIn className="max-w-6xl mx-auto px-6 sm:px-8 py-8 space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="font-heading text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+    <FadeIn className="mx-auto max-w-6xl px-8 py-10 space-y-8">
+      <div className="flex items-end justify-between gap-6">
+        <div className="min-w-0 space-y-1.5">
+          <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
             Comunidades
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground tabular-nums">
             {loading ? "Cargando…" : `${communitiesData.length} instalaciones de autoconsumo`}
           </p>
         </div>
@@ -138,15 +138,15 @@ export default function CommunitiesPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1">
           {FILTERS.map(f => (
             <button
               key={f.id}
               onClick={() => setFilter(f.id)}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 filter === f.id
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
               {f.label}
