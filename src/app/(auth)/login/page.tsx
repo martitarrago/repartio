@@ -3,13 +3,15 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { FadeIn } from "@/components/ui/motion";
 
 const esquema = z.object({
   email: z.string().email("Introduce un email válido"),
@@ -49,49 +51,50 @@ function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-sm">
-      {/* Logo */}
+    <FadeIn className="w-full max-w-sm">
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-semibold text-[#18181B]">Iniciar sesión</h1>
-        <p className="mt-1 text-sm text-[#A1A1AA]">Accede a tu cuenta de Repartio</p>
+        <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground">
+          Iniciar sesión
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Accede a tu cuenta de Repartio
+        </p>
       </div>
 
-      <div
-        className="rounded-lg bg-white p-8"
-        style={{
-          border: "1px solid rgba(0,0,0,0.06)",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)",
-        }}
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="rounded-xl border border-border bg-white p-7 shadow-card">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
           {error && (
-            <p className="rounded-md bg-[#FEF2F2] px-3 py-2 text-xs text-[#DC2626]">
-              {error}
-            </p>
+            <div
+              role="alert"
+              className="flex items-start gap-2 rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs text-destructive"
+            >
+              <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
           )}
 
-          <div className="space-y-1">
-            <label htmlFor="email" className="text-sm font-medium text-[#52525B]">
-              Email
-            </label>
+          <div className="space-y-1.5">
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
               placeholder="tu@email.com"
               autoComplete="email"
+              aria-invalid={!!errors.email}
               {...register("email")}
             />
             {errors.email && (
-              <p className="text-2xs text-[#DC2626]">{errors.email.message}</p>
+              <p className="text-2xs text-destructive">{errors.email.message}</p>
             )}
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label htmlFor="password" className="text-sm font-medium text-[#52525B]">
-                Contraseña
-              </label>
-              <Link href="/forgot-password" className="text-2xs text-[#A1A1AA] hover:text-[#18181B]">
+              <Label htmlFor="password">Contraseña</Label>
+              <Link
+                href="/forgot-password"
+                className="text-2xs text-muted-foreground hover:text-foreground transition-colors"
+              >
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
@@ -101,19 +104,24 @@ function LoginForm() {
                 type={mostrarPassword ? "text" : "password"}
                 autoComplete="current-password"
                 className="pr-9"
+                aria-invalid={!!errors.password}
                 {...register("password")}
               />
               <button
                 type="button"
                 onClick={() => setMostrarPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A1A1AA] hover:text-[#71717A]"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 aria-label={mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
-                {mostrarPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                {mostrarPassword ? (
+                  <EyeOff className="h-3.5 w-3.5" />
+                ) : (
+                  <Eye className="h-3.5 w-3.5" />
+                )}
               </button>
             </div>
             {errors.password && (
-              <p className="text-2xs text-[#DC2626]">{errors.password.message}</p>
+              <p className="text-2xs text-destructive">{errors.password.message}</p>
             )}
           </div>
 
@@ -122,21 +130,21 @@ function LoginForm() {
             {isSubmitting ? "Entrando..." : "Entrar"}
           </Button>
 
-          <div className="relative my-3">
+          <div className="relative my-1">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#E5E7EB]" />
+              <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-2 text-[#A1A1AA]">o</span>
+              <span className="bg-white px-2 text-muted-foreground">o</span>
             </div>
           </div>
 
           <button
             type="button"
             onClick={() => signIn("google", { callbackUrl })}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-md border border-[#E5E7EB] bg-white text-sm font-medium text-[#374151] hover:bg-[#F9FAFB] transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-muted hover:border-foreground/20 active:scale-[0.98]"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
@@ -147,20 +155,26 @@ function LoginForm() {
         </form>
       </div>
 
-      <p className="mt-4 text-center text-sm text-[#A1A1AA]">
+      <p className="mt-6 text-center text-sm text-muted-foreground">
         ¿No tienes cuenta?{" "}
-        <Link href="/register" className="text-[#18181B] hover:underline">
+        <Link href="/register" className="font-medium text-foreground hover:underline">
           Crear cuenta
         </Link>
       </p>
-      <p className="mt-3 text-center text-[11px] text-[#C4C4C4]">
-        <Link href="/privacidad" className="hover:underline">Privacidad</Link>
+      <p className="mt-3 text-center text-[11px] text-muted-foreground/70">
+        <Link href="/privacidad" className="hover:text-foreground hover:underline transition-colors">
+          Privacidad
+        </Link>
         {" · "}
-        <Link href="/terminos" className="hover:underline">Términos</Link>
+        <Link href="/terminos" className="hover:text-foreground hover:underline transition-colors">
+          Términos
+        </Link>
         {" · "}
-        <Link href="/legal" className="hover:underline">Aviso legal</Link>
+        <Link href="/legal" className="hover:text-foreground hover:underline transition-colors">
+          Aviso legal
+        </Link>
       </p>
-    </div>
+    </FadeIn>
   );
 }
 
