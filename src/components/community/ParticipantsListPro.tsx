@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, Mail, X, Upload, Search, AlertCircle, Check, Pencil, Loader2 } from "lucide-react";
 import { type Participant, validateCUPS } from "@/lib/types/community";
+import { ImportParticipantsDialog } from "./ImportParticipantsDialog";
 
 interface ParticipantsListProps {
   participants: Participant[];
@@ -235,6 +236,7 @@ function ParticipantRow({
 
 export function ParticipantsListPro({ participants, onParticipantsChange, communityId }: ParticipantsListProps) {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [search, setSearch] = useState("");
   const [newName, setNewName] = useState("");
   const [newUnit, setNewUnit] = useState("");
@@ -346,6 +348,13 @@ export function ParticipantsListPro({ participants, onParticipantsChange, commun
         </div>
         <div className="flex gap-2">
           <button
+            onClick={() => setShowImport(true)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-secondary text-secondary-foreground font-medium text-xs hover:bg-secondary/80 transition-colors border border-border"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            Importar
+          </button>
+          <button
             onClick={() => setShowAddForm(!showAddForm)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white font-medium text-xs hover:opacity-90 transition-opacity shadow-md shadow-primary/20"
           >
@@ -443,6 +452,19 @@ export function ParticipantsListPro({ participants, onParticipantsChange, commun
           </div>
         )}
       </div>
+
+      {/* Import dialog */}
+      {communityId && (
+        <ImportParticipantsDialog
+          open={showImport}
+          onOpenChange={setShowImport}
+          communityId={communityId}
+          existingCups={participants.map(p => p.cups)}
+          onImported={(imported) => {
+            onParticipantsChange([...participants, ...imported]);
+          }}
+        />
+      )}
     </div>
   );
 }
