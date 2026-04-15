@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { Upload, FileSpreadsheet, AlertCircle, Check, Loader2, Download, X } from "lucide-react";
+import { Upload, FileSpreadsheet, AlertCircle, Check, Loader2, Download, ChevronRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -28,23 +28,65 @@ interface ParsedRow {
   errors: string[];
 }
 
-// Flexible column name matching
 const COL_MATCHERS: Record<string, RegExp> = {
   nombre: /^(nombre|name|participante|titular|propietario)/i,
-  cups:   /^(cups|código.?suministro|codigo.?suministro|punto.?suministro)/i,
+  cups:   /^(cups|c[oó]digo.?suministro|punto.?suministro)/i,
   email:  /^(email|e-mail|correo|mail)/i,
-  unidad: /^(unidad|piso|puerta|vivienda|unit|dirección|direccion|portal)/i,
+  unidad: /^(unidad|piso|puerta|vivienda|unit|direcci[oó]n|portal)/i,
 };
 
-function matchColumn(header: string): string | null {
-  const clean = header.trim();
-  for (const [field, re] of Object.entries(COL_MATCHERS)) {
-    if (re.test(clean)) return field;
+const FIELD_LABELS: Record<string, { label: string; required: boolean }> = {
+  nombre: { label: "Nombre", required: true },
+  cups:   { label: "CUPS", required: true },
+  email:  { label: "Email", required: false },
+  unidad: { label: "Unidad / Piso", required: false },
+};
+
+function autoMap(headers: string[]): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const h of headers) {
+    const clean = h.trim();
+    for (const [field, re] of Object.entries(COL_MATCHERS)) {
+      if (re.test(clean) && !map[field]) {
+        map[field] = h;
+        break;
+      }
+    }
   }
-  return null;
+  return map;
 }
 
-function parseFile(data: ArrayBuffer, fileName: string): { headers: string[]; rows: Record<string, string>[] } {
+function buildRows(
+  rows: Record<string, string>[],
+  map: Record<string, string>,
+  existingCups: string[],
+): ParsedRow[] {
+  const existingSet = new Set(existingCups.map(c => c.toUpperCase()));
+  const seenCups = new Set<string>();
+
+  return rows.map(row => {
+    const nombre = (row[map.nombre] ?? "").trim();
+    const cups   = (row[map.cups]   ?? "").trim().toUpperCase().replace(/\s/g, "");
+    const email  = (row[map.email]  ?? "").trim();
+    const unidad = (row[map.unidad] ?? "").trim();
+    const errors: string[] = [];
+
+    if (!nombre) errors.push("Nombre obligatorio");
+    if (!cups) {
+      errors.push("CUPS obligatorio");
+    } else {
+      const v = validateCUPS(cups);
+      if (!v.valid) errors.push(v.error!);
+      if (existingSet.has(cups)) errors.push("CUPS ya existe en la comunidad");
+      if (seenCups.has(cups)) errors.push("CUPS duplicado en el archivo");
+      seenCups.add(cups);
+    }
+
+    return { nombre, cups, email, unidad, errors };
+  });
+}
+
+function parseFile(data: ArrayBuffer): { headers: string[]; rows: Record<string, string>[] } {
   const wb = XLSX.read(data, { type: "array" });
   const sheet = wb.Sheets[wb.SheetNames[0]];
   const json = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: "", raw: false });
@@ -71,10 +113,12 @@ export function ImportParticipantsDialog({
   existingCups,
   onImported,
 }: ImportParticipantsDialogProps) {
-  const [step, setStep] = useState<"upload" | "preview" | "importing">("upload");
+  const [step, setStep] = useState<"upload" | "mapping" | "preview" | "importing">("upload");
   const [fileName, setFileName] = useState("");
-  const [parsed, setParsed] = useState<ParsedRow[]>([]);
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [rawRows, setRawRows] = useState<Record<string, string>[]>([]);
   const [columnMap, setColumnMap] = useState<Record<string, string>>({});
+  const [parsed, setParsed] = useState<ParsedRow[]>([]);
   const [importProgress, setImportProgress] = useState(0);
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -82,8 +126,10 @@ export function ImportParticipantsDialog({
   const reset = useCallback(() => {
     setStep("upload");
     setFileName("");
-    setParsed([]);
+    setHeaders([]);
+    setRawRows([]);
     setColumnMap({});
+    setParsed([]);
     setImportProgress(0);
   }, []);
 
@@ -97,54 +143,25 @@ export function ImportParticipantsDialog({
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const { headers, rows } = parseFile(e.target!.result as ArrayBuffer, file.name);
-
-        // Auto-map columns
-        const map: Record<string, string> = {};
-        for (const h of headers) {
-          const match = matchColumn(h);
-          if (match && !Object.values(map).includes(h)) {
-            map[match] = h;
-          }
-        }
-
+        const { headers: h, rows } = parseFile(e.target!.result as ArrayBuffer);
+        const map = autoMap(h);
+        setHeaders(h);
+        setRawRows(rows);
         setColumnMap(map);
 
-        // Parse and validate rows
-        const existingSet = new Set(existingCups.map(c => c.toUpperCase()));
-        const seenCups = new Set<string>();
-        const parsedRows: ParsedRow[] = [];
-
-        for (const row of rows) {
-          const nombre = (row[map.nombre] ?? "").trim();
-          const cups = (row[map.cups] ?? "").trim().toUpperCase().replace(/\s/g, "");
-          const email = (row[map.email] ?? "").trim();
-          const unidad = (row[map.unidad] ?? "").trim();
-          const errors: string[] = [];
-
-          if (!nombre) errors.push("Nombre obligatorio");
-          if (!cups) {
-            errors.push("CUPS obligatorio");
-          } else {
-            const v = validateCUPS(cups);
-            if (!v.valid) errors.push(v.error!);
-            if (existingSet.has(cups)) errors.push("CUPS ya existe en la comunidad");
-            if (seenCups.has(cups)) errors.push("CUPS duplicado en el archivo");
-            seenCups.add(cups);
-          }
-
-          parsedRows.push({ nombre, cups, email, unidad, errors });
+        // If required columns are missing, go to mapping step
+        if (!map.nombre || !map.cups) {
+          setStep("mapping");
+        } else {
+          setParsed(buildRows(rows, map, existingCups));
+          setStep("preview");
         }
-
-        setParsed(parsedRows);
-        setStep("preview");
       } catch {
-        setParsed([]);
-        setStep("upload");
+        reset();
       }
     };
     reader.readAsArrayBuffer(file);
-  }, [existingCups]);
+  }, [existingCups, reset]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -156,7 +173,13 @@ export function ImportParticipantsDialog({
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) processFile(file);
+    e.target.value = "";
   }, [processFile]);
+
+  const applyMapping = () => {
+    setParsed(buildRows(rawRows, columnMap, existingCups));
+    setStep("preview");
+  };
 
   const validRows = parsed.filter(r => r.errors.length === 0);
   const errorRows = parsed.filter(r => r.errors.length > 0);
@@ -178,7 +201,6 @@ export function ImportParticipantsDialog({
             unit: row.unidad || undefined,
           }),
         });
-
         if (res.ok) {
           const { id } = await res.json();
           imported.push({
@@ -194,9 +216,8 @@ export function ImportParticipantsDialog({
           });
         }
       } catch {
-        // skip failed row
+        // skip row
       }
-
       done++;
       setImportProgress(Math.round((done / validRows.length) * 100));
     }
@@ -217,7 +238,7 @@ export function ImportParticipantsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* ── Upload step ────────────────────────────────────────── */}
+        {/* ── Upload ─────────────────────────────────────────────── */}
         {step === "upload" && (
           <div className="space-y-4">
             <div
@@ -235,53 +256,116 @@ export function ImportParticipantsDialog({
                 <Upload className="h-4 w-4 text-muted-foreground" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-medium text-foreground">
-                  Arrastra tu archivo aquí
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  o haz clic para seleccionar · .xlsx, .csv
-                </p>
+                <p className="text-sm font-medium text-foreground">Arrastra tu archivo aquí</p>
+                <p className="mt-1 text-xs text-muted-foreground">o haz clic para seleccionar · .xlsx, .csv</p>
               </div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
+              <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleFileSelect} className="hidden" />
             </div>
 
-            <button
-              onClick={downloadTemplate}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Download className="h-3 w-3" />
-              Descargar plantilla Excel
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={downloadTemplate}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Download className="h-3 w-3" />
+                Descargar plantilla Excel
+              </button>
+              <span className="text-xs text-muted-foreground/60">
+                — intenta que tu Excel sea lo más parecido posible a la plantilla para una mejor importación.
+              </span>
+            </div>
           </div>
         )}
 
-        {/* ── Preview step ───────────────────────────────────────── */}
-        {step === "preview" && (
-          <div className="space-y-4 min-h-0 flex flex-col">
-            {/* File info */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
-                <span className="text-xs text-foreground font-medium">{fileName}</span>
-                <span className="text-xs text-muted-foreground">
-                  · {parsed.length} filas
-                </span>
-              </div>
-              <button
-                onClick={reset}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
+        {/* ── Mapping ────────────────────────────────────────────── */}
+        {step === "mapping" && (
+          <div className="space-y-5">
+            <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+              <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+              <p className="text-xs text-amber-800">
+                No hemos podido detectar automáticamente las columnas de tu archivo. Asígnalas manualmente.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <FileSpreadsheet className="h-3.5 w-3.5" />
+              <span className="font-medium text-foreground">{fileName}</span>
+              <span>· {rawRows.length} filas · {headers.length} columnas</span>
+              <button onClick={reset} className="ml-auto hover:text-foreground transition-colors">
                 Cambiar archivo
               </button>
             </div>
 
-            {/* Summary */}
+            <div className="space-y-3">
+              {Object.entries(FIELD_LABELS).map(([field, { label, required }]) => (
+                <div key={field} className="grid grid-cols-2 items-center gap-4">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-medium text-foreground">{label}</span>
+                    {required
+                      ? <span className="text-[10px] text-destructive font-medium">obligatorio</span>
+                      : <span className="text-[10px] text-muted-foreground">opcional</span>
+                    }
+                  </div>
+                  <select
+                    value={columnMap[field] ?? ""}
+                    onChange={e => setColumnMap(m => ({ ...m, [field]: e.target.value }))}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/20"
+                  >
+                    <option value="">— No mapear —</option>
+                    {headers.map(h => (
+                      <option key={h} value={h}>{h}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+
+            {/* Preview of first row */}
+            {rawRows.length > 0 && (
+              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Vista previa — primera fila
+                </p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                  {Object.entries(FIELD_LABELS).map(([field, { label }]) => (
+                    <div key={field} className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-muted-foreground w-20 shrink-0">{label}:</span>
+                      <span className="text-[10px] font-mono text-foreground truncate">
+                        {columnMap[field] ? (rawRows[0][columnMap[field]] || "—") : "—"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end">
+              <button
+                onClick={applyMapping}
+                disabled={!columnMap.nombre || !columnMap.cups}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                Continuar
+                <ChevronRight className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Preview ────────────────────────────────────────────── */}
+        {step === "preview" && (
+          <div className="space-y-4 min-h-0 flex flex-col">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
+                <span className="text-xs text-foreground font-medium">{fileName}</span>
+                <span className="text-xs text-muted-foreground">· {parsed.length} filas</span>
+              </div>
+              <button onClick={reset} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                Cambiar archivo
+              </button>
+            </div>
+
             <div className="flex gap-3">
               <div className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5">
                 <Check className="h-3 w-3 text-primary" />
@@ -295,8 +379,7 @@ export function ImportParticipantsDialog({
               )}
             </div>
 
-            {/* Preview table */}
-            <div className="overflow-auto rounded-lg border border-border flex-1 min-h-0 max-h-[340px]">
+            <div className="overflow-auto rounded-lg border border-border flex-1 min-h-0 max-h-[320px]">
               <table className="w-full text-xs">
                 <thead className="sticky top-0 bg-muted/80 backdrop-blur-sm">
                   <tr className="border-b border-border">
@@ -309,10 +392,7 @@ export function ImportParticipantsDialog({
                 </thead>
                 <tbody className="divide-y divide-border">
                   {parsed.map((row, i) => (
-                    <tr
-                      key={i}
-                      className={row.errors.length > 0 ? "bg-destructive/5" : ""}
-                    >
+                    <tr key={i} className={row.errors.length > 0 ? "bg-destructive/5" : ""}>
                       <td className="px-3 py-2 text-foreground">{row.nombre || "—"}</td>
                       <td className="px-3 py-2 font-mono text-muted-foreground text-[10px]">{row.cups || "—"}</td>
                       <td className="px-3 py-2 text-muted-foreground">{row.email || "—"}</td>
@@ -335,7 +415,6 @@ export function ImportParticipantsDialog({
               </table>
             </div>
 
-            {/* Actions */}
             <div className="flex items-center justify-between pt-1">
               <p className="text-[10px] text-muted-foreground">
                 Las filas con errores se omitirán automáticamente.
@@ -352,17 +431,13 @@ export function ImportParticipantsDialog({
           </div>
         )}
 
-        {/* ── Importing step ─────────────────────────────────────── */}
+        {/* ── Importing ──────────────────────────────────────────── */}
         {step === "importing" && (
           <div className="flex flex-col items-center justify-center gap-4 py-8">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
             <div className="text-center">
-              <p className="text-sm font-medium text-foreground">
-                Importando participantes...
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground tabular-nums">
-                {importProgress}%
-              </p>
+              <p className="text-sm font-medium text-foreground">Importando participantes...</p>
+              <p className="mt-1 text-xs text-muted-foreground tabular-nums">{importProgress}%</p>
             </div>
             <div className="w-48 h-1.5 rounded-full bg-muted overflow-hidden">
               <div
