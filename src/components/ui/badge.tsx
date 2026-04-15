@@ -3,20 +3,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils/cn";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-[999px] px-2.5 py-0.5 text-[11px] font-medium transition-colors",
+  "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium leading-none tabular-nums transition-colors",
   {
     variants: {
       variant: {
-        success:     "bg-[#DCFCE7] text-[#15803D]",
-        warning:     "bg-[#FEF9C3] text-[#A16207]",
-        error:       "bg-[#FEF2F2] text-[#DC2626]",
-        info:        "bg-[#E0F2FE] text-[#0369A1]",
-        default:     "bg-[#F4F4F5] text-[#71717A]",
-        outline:     "border border-[#E4E4E7] text-[#71717A]",
-        secondary:   "bg-[#F4F4F5] text-[#71717A]",
-        destructive: "bg-[#FEF2F2] text-[#DC2626]",
-        energy:      "bg-[#FEF3C7] text-[#B45309]",
-        validated:   "bg-[#E5A500]/15 text-[#92400E]",
+        success:     "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/10",
+        warning:     "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/10",
+        error:       "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/10",
+        info:        "bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-600/10",
+        default:     "bg-muted text-muted-foreground ring-1 ring-inset ring-border",
+        outline:     "border border-border text-muted-foreground",
+        secondary:   "bg-muted text-muted-foreground ring-1 ring-inset ring-border",
+        destructive: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/10",
+        energy:      "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/10",
+        validated:   "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/10",
       },
     },
     defaultVariants: {

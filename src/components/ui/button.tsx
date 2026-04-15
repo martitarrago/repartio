@@ -4,29 +4,29 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils/cn";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium transition-[transform,box-shadow,background-color,opacity,color] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] [&_svg]:pointer-events-none [&_svg]:size-3.5 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium tracking-[-0.005em] transition-[background-color,opacity,color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/15 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-3.5 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md",
+          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
         secondary:
-          "border border-border bg-white text-foreground shadow-sm hover:bg-muted hover:border-foreground/20",
+          "border border-border bg-white text-foreground shadow-xs hover:bg-muted",
         outline:
-          "border border-border bg-white text-foreground hover:bg-muted hover:border-foreground/20",
+          "border border-border bg-white text-foreground hover:bg-muted",
         destructive:
-          "bg-destructive text-white shadow-sm hover:bg-destructive/90 hover:shadow-md",
+          "bg-destructive text-white shadow-xs hover:bg-destructive/90",
         ghost:
           "text-muted-foreground hover:bg-muted hover:text-foreground",
         link:
           "text-primary underline-offset-4 hover:underline",
         accent:
-          "bg-accent text-accent-foreground shadow-brand hover:brightness-105 hover:shadow-md",
+          "bg-accent text-accent-foreground hover:brightness-[1.03]",
       },
       size: {
-        default: "h-9 px-4 py-2",
+        default: "h-9 px-3.5",
         sm:      "h-8 rounded-md px-3 text-xs",
-        lg:      "h-10 rounded-md px-6",
+        lg:      "h-10 rounded-md px-5",
         icon:    "h-9 w-9",
       },
     },
