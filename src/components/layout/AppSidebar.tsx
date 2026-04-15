@@ -63,7 +63,7 @@ export default function AppSidebar() {
           />
           {/* Logo completo (visible cuando está expandido) */}
           <img
-            src="/logo-dark.svg"
+            src="/logo-light.svg"
             alt="Repartio"
             className="h-12 w-auto block group-data-[collapsible=icon]:hidden"
             style={{ maxWidth: 200 }}
