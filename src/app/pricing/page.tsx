@@ -95,10 +95,10 @@ export default function PricingPage() {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative bg-white rounded-2xl p-7 flex flex-col ${
+              className={`relative bg-white rounded-2xl p-7 flex flex-col transition-all duration-200 hover:-translate-y-1 ${
                 plan.highlighted
-                  ? "ring-2 ring-gray-900 shadow-xl"
-                  : "border border-gray-200 shadow-sm"
+                  ? "ring-2 ring-gray-900 shadow-xl hover:shadow-2xl"
+                  : "border border-gray-200 shadow-sm hover:shadow-lg hover:border-gray-300"
               }`}
             >
               {plan.highlighted && (
@@ -131,7 +131,7 @@ export default function PricingPage() {
 
               <a
                 href={plan.ctaHref}
-                className={`w-full text-center py-2.5 rounded-xl text-sm font-medium transition-all ${plan.ctaStyle}`}
+                className={`w-full text-center py-2.5 rounded-xl text-sm font-medium transition-all active:scale-[0.98] ${plan.ctaStyle}`}
               >
                 {plan.cta}
               </a>
