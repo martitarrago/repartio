@@ -461,7 +461,9 @@ export function ParticipantsListPro({ participants, onParticipantsChange, commun
           communityId={communityId}
           existingCups={participants.map(p => p.cups)}
           onImported={(imported) => {
-            onParticipantsChange([...participants, ...imported]);
+            const importedCups = new Set(imported.map(p => p.cups));
+            const remaining = participants.filter(p => !importedCups.has(p.cups));
+            onParticipantsChange([...remaining, ...imported]);
           }}
         />
       )}
