@@ -221,7 +221,7 @@ export function ImportParticipantsDialog({
   const newRows     = parsed.filter(r => r.errors.length === 0 && !r.willUpdate);
   const errorRows   = parsed.filter(r => r.errors.length > 0);
   const warnRows    = parsed.filter(r => r.errors.length === 0 && r.warnings.length > 0);
-  const hasBeta     = validRows.some(r => r.beta !== null);
+  const hasBeta     = parsed.some(r => r.beta !== null);
   const betaSum     = hasBeta ? validRows.reduce((s, r) => s + (r.beta ?? 0), 0) : 0;
   const betaSumOk   = hasBeta && Math.abs(betaSum - 1) < 1e-6;
 

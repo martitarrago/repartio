@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Send, CheckCircle2, Clock, PenLine, XCircle, Mail, Loader2, Wifi, Copy, Link, Check } from "lucide-react";
+import { Send, CheckCircle2, Clock, PenLine, XCircle, Mail, MailX, Loader2, Wifi, Copy, Link, Check } from "lucide-react";
 import { type Community } from "@/lib/types/community";
 import { supabase } from "@/lib/supabase";
 
@@ -314,7 +314,15 @@ export function SignaturesTab({ community, communityId, validationErrors = [] }:
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground">{s.name}</p>
-                <p className="text-xs text-muted-foreground">{s.unit} · {s.email || "Sin email"}</p>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span>{s.unit}{s.unit && s.email ? " · " : ""}{s.email}</span>
+                  {!s.email && (
+                    <span className="flex items-center gap-1 text-[10px] font-medium text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
+                      <MailX className="w-2.5 h-2.5" />
+                      Sin email
+                    </span>
+                  )}
+                </div>
               </div>
               {s.state === "signed" ? (
                 <div className="flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/15 px-2.5 py-1 rounded-full">
@@ -344,7 +352,11 @@ export function SignaturesTab({ community, communityId, validationErrors = [] }:
                   >
                     <PenLine className="w-4 h-4 text-muted-foreground hover:text-primary" />
                   </button>
-                  <button className="p-2 rounded-lg hover:bg-secondary transition-colors" title="Enviar recordatorio">
+                  <button
+                    disabled={!s.email}
+                    className="p-2 rounded-lg hover:bg-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title={s.email ? "Enviar recordatorio" : "Sin email — no se puede enviar recordatorio"}
+                  >
                     <Send className="w-4 h-4 text-muted-foreground hover:text-primary" />
                   </button>
                 </div>

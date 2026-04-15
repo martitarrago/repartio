@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Mail, X, Upload, Search, AlertCircle, Check, Pencil, Loader2 } from "lucide-react";
+import { Plus, Mail, MailX, X, Upload, Search, AlertCircle, Check, Pencil, Loader2 } from "lucide-react";
 import { type Participant, validateCUPS } from "@/lib/types/community";
 import { ImportParticipantsDialog } from "./ImportParticipantsDialog";
 
@@ -188,7 +188,14 @@ function ParticipantRow({
         </div>
         <div className="min-w-0">
           <p className="text-xs font-medium text-foreground truncate">{p.name}</p>
-          <p className="text-[10px] text-muted-foreground">{p.unit} · {p.email}</p>
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <span>{p.unit}{p.unit && p.email ? " · " : ""}{p.email}</span>
+            {!p.email && (
+              <span title="Sin email — no podrá recibir el enlace de firma">
+                <MailX className="w-3 h-3 text-amber-500 flex-shrink-0" />
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -273,7 +280,7 @@ export function ParticipantsListPro({ participants, onParticipantsChange, commun
       unit: newUnit.trim(),
       beta: 0,
       potenciaContratada: parseFloat(newPotencia) || undefined,
-      status: "pending",
+      status: "active",
       signatureState: "pending",
       entryDate: new Date().toISOString().slice(0, 10),
     };
