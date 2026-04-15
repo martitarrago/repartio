@@ -24,7 +24,10 @@ export const metadata: Metadata = {
   description:
     "Plataforma para la gestión y generación de coeficientes de reparto de autoconsumo colectivo según el Real Decreto 244/2019.",
   icons: {
-    icon: "/favicon.svg",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.png", type: "image/png" },
+    ],
   },
 };
 
