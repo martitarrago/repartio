@@ -1,6 +1,8 @@
 "use client";
 
 import { EditorCoeficientes } from "./EditorCoeficientes";
+import { FadeIn } from "@/components/ui/motion";
+import { FileX2 } from "lucide-react";
 import type {
   Participante,
   EntradaConstante,
@@ -39,13 +41,22 @@ export function EditorCoeficientesContainer({
 }: EditorCoeficientesContainerProps) {
   if (participantes.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center text-sm text-muted-foreground">
-        <p>No hay participantes para mostrar el editor.</p>
+      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-white/40 py-16 text-center">
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+          <FileX2 className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <p className="font-heading text-base font-semibold text-foreground">
+          Sin participantes
+        </p>
+        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+          Añade participantes a la instalación para mostrar el editor de coeficientes.
+        </p>
       </div>
     );
   }
 
   return (
+    <FadeIn>
     <EditorCoeficientes
       instalacionId={instalacionId}
       conjuntoId={conjuntoId}
@@ -64,5 +75,6 @@ export function EditorCoeficientesContainer({
       }
       modoInicial={modoInicial}
     />
+    </FadeIn>
   );
 }
