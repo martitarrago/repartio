@@ -20,8 +20,8 @@ const STEPS = [
   { id: "detalles", label: "Detalles", icon: Building2 },
   { id: "participantes", label: "Participantes", icon: Users },
   { id: "coeficientes", label: "Coeficientes", icon: Hash },
-  { id: "documento", label: "Documento", icon: FileText },
   { id: "firmas", label: "Firmas", icon: PenLine },
+  { id: "documento", label: "Documentos", icon: FileText },
 ] as const;
 
 type StepId = (typeof STEPS)[number]["id"];
