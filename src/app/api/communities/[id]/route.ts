@@ -69,7 +69,7 @@ export async function GET(
       participantes: { where: { activo: true }, orderBy: { orden: "asc" } },
       documentos: true,
       conjuntos: {
-        where: { estado: { in: ["PUBLICADO", "VALIDADO"] } },
+        where: { estado: { in: ["PUBLICADO", "VALIDADO", "BORRADOR"] } },
         orderBy: { version: "desc" },
         take: 1,
         include: { entradas: { where: { hora: null, tipoDia: null } } },
