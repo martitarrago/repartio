@@ -36,7 +36,7 @@ const COL_MATCHERS: Record<string, RegExp> = {
   cups:   /^(cups|c[oó]digo.?suministro|punto.?suministro)/i,
   email:  /^(email|e-mail|correo|mail)/i,
   unidad: /^(unidad|piso|puerta|vivienda|unit|direcci[oó]n|portal)/i,
-  beta:   /^(beta|coeficiente|coef\.?|reparto|%|porcentaje)/i,
+  beta:   /^(beta|β|coeficiente|coef\.?|reparto|porcentaje|%|factor|proporci[oó]n|participaci[oó]n)/i,
 };
 
 const FIELD_LABELS: Record<string, { label: string; required: boolean }> = {
@@ -254,8 +254,8 @@ export function ImportParticipantsDialog({
             cups: row.cups,
             email: row.email,
             unit: row.unidad,
-            beta: 0,
-            status: "pending",
+            beta: row.beta ?? 0,
+            status: "active",
             signatureState: "pending",
             entryDate: new Date().toISOString().slice(0, 10),
           };
