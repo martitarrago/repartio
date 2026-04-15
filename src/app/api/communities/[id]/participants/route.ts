@@ -35,26 +35,45 @@ export async function POST(
   }
 
   const { name, cups, email, unit } = parsed.data;
+  const cupsUpper = cups.toUpperCase();
+
+  // Si el CUPS ya existe en esta comunidad, distinguir activo vs. baja
+  const existing = await prisma.participante.findUnique({
+    where: { cups_instalacionId: { cups: cupsUpper, instalacionId } },
+  });
+
+  if (existing) {
+    if (existing.activo) {
+      return NextResponse.json({ message: "CUPS ya registrado en esta comunidad" }, { status: 409 });
+    }
+    // Estaba de baja → reactivar con los nuevos datos
+    const reactivado = await prisma.participante.update({
+      where: { id: existing.id },
+      data: {
+        nombre: name,
+        email: email || null,
+        unidad: unit || null,
+        activo: true,
+        estadoParticipante: "ACTIVO",
+        estadoFirma: "PENDIENTE",
+        fechaBaja: null,
+        fechaAlta: new Date(),
+      },
+    });
+    return NextResponse.json({ id: reactivado.id, reactivated: true }, { status: 200 });
+  }
 
   const count = await prisma.participante.count({ where: { instalacionId, activo: true } });
 
-  try {
-    const participante = await prisma.participante.create({
-      data: {
-        nombre: name,
-        cups: cups.toUpperCase(),
-        email: email || null,
-        unidad: unit || null,
-        instalacionId,
-        orden: count,
-      },
-    });
-    return NextResponse.json({ id: participante.id }, { status: 201 });
-  } catch (e: any) {
-    if (e.code === "P2002") {
-      return NextResponse.json({ message: "CUPS ya registrado en esta comunidad" }, { status: 409 });
-    }
-    console.error(e);
-    return NextResponse.json({ message: "Error interno" }, { status: 500 });
-  }
+  const participante = await prisma.participante.create({
+    data: {
+      nombre: name,
+      cups: cupsUpper,
+      email: email || null,
+      unidad: unit || null,
+      instalacionId,
+      orden: count,
+    },
+  });
+  return NextResponse.json({ id: participante.id }, { status: 201 });
 }
