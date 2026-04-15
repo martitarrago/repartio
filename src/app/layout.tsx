@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Sora, Manrope } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import { CookieBanner } from "@/components/CookieBanner";
+import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
 const sora = Sora({
@@ -36,6 +37,7 @@ export default function RootLayout({
         <SessionProvider>
           {children}
           <CookieBanner />
+          <Toaster />
         </SessionProvider>
       </body>
     </html>
