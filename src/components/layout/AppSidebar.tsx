@@ -53,8 +53,8 @@ export default function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       {/* ── Cabecera: logo ── */}
-      <SidebarHeader className="border-b border-sidebar-border px-3 py-2.5">
-        <Link href="/dashboard" className="flex items-center h-9">
+      <SidebarHeader className="border-b border-sidebar-border px-3 py-3">
+        <Link href="/dashboard" className="flex items-center h-12">
           {/* Icono (visible cuando el sidebar está colapsado) */}
           <img
             src="/favicon.svg"
@@ -65,8 +65,8 @@ export default function AppSidebar() {
           <img
             src="/logo-dark.svg"
             alt="Repartio"
-            className="h-8 w-auto block group-data-[collapsible=icon]:hidden"
-            style={{ maxWidth: 130 }}
+            className="h-12 w-auto block group-data-[collapsible=icon]:hidden"
+            style={{ maxWidth: 200 }}
           />
         </Link>
       </SidebarHeader>
