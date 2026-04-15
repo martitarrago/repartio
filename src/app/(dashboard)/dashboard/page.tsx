@@ -11,6 +11,8 @@ import { validateProject, validateAllocationSum, type Community } from "@/lib/ty
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FadeIn, Stagger, StaggerItem, motion } from "@/components/ui/motion";
+import { AnimatePresence } from "framer-motion";
 
 // ── Pipeline ────────────────────────────────────────────────────────────────
 
@@ -411,172 +413,237 @@ export default function DashboardPage() {
     }
   };
 
+  const activePipeline = PIPELINE.find(p => p.id === activeState)!;
+  const activeCount = grouped[activeState]?.length ?? 0;
+
   return (
-    <div className="mx-auto max-w-6xl px-8 py-10 space-y-10 animate-fade-in">
-      {/* Welcome */}
-      <div className="flex items-end justify-between gap-6">
-        <div className="min-w-0 space-y-1.5">
-          <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
-            Panel de Control
+    <div className="mx-auto max-w-6xl px-8 py-12 space-y-12">
+      {/* ── Hero ───────────────────────────────────────────────────────────── */}
+      <FadeIn className="flex items-end justify-between gap-6">
+        <div className="min-w-0 space-y-2">
+          <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+            Panel de control
+          </p>
+          <h1 className="font-heading text-[32px] font-semibold leading-[1.15] tracking-[-0.015em] text-foreground">
+            Todas tus comunidades, de un vistazo
           </h1>
           <p className="text-sm text-muted-foreground">
-            Resumen del estado de todas tus comunidades
+            Revisa el estado de cada instalación y actúa sobre las que requieren tu atención.
           </p>
         </div>
-        <Button asChild>
+        <Button asChild size="lg" className="shadow-xs">
           <a href="/communities/new">Nueva comunidad</a>
         </Button>
-      </div>
+      </FadeIn>
 
-      {/* AI Chat input */}
-      <div className="space-y-3">
-        <div className="relative flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3 shadow-sm">
-          <Sparkles className="w-4 h-4 text-primary flex-shrink-0" />
+      {/* ── AI Chat input ──────────────────────────────────────────────────── */}
+      <FadeIn delay={0.05} className="space-y-3">
+        <div className="group relative flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-xs transition-colors focus-within:border-foreground/20">
+          <Sparkles className="h-4 w-4 shrink-0 text-muted-foreground group-focus-within:text-foreground transition-colors" />
           <input
             type="text"
             value={chatInput}
             onChange={(e) => setChatInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleChatSend(); } }}
             onFocus={() => { if (!chatOpen && chatMessages.length > 0) setChatOpen(true); }}
-            placeholder={chatInput ? "" : (chatOpen ? "Escribe un mensaje..." : placeholder + "\u258F")}
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/50 text-foreground"
+            placeholder={chatInput ? "" : (chatOpen ? "Escribe un mensaje…" : placeholder + "\u258F")}
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60 text-foreground"
           />
           <button
             onClick={handleChatSend}
             disabled={streaming || !chatInput.trim()}
-            className="p-2 rounded-lg bg-primary text-primary-foreground disabled:opacity-40 hover:bg-primary/90 transition-colors"
+            aria-label="Enviar"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs transition-colors hover:bg-primary/90 disabled:opacity-40 disabled:hover:bg-primary"
           >
-            <Send className="w-4 h-4" />
+            <Send className="h-3.5 w-3.5" />
           </button>
         </div>
 
-        {/* Chat panel */}
-        {chatOpen && (
-          <ChatPanel
-            messages={chatMessages}
-            streaming={streaming}
-            streamingText={streamingText}
-            onClose={() => setChatOpen(false)}
-            noApiKey={noApiKey}
-          />
-        )}
-      </div>
+        <AnimatePresence>
+          {chatOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <ChatPanel
+                messages={chatMessages}
+                streaming={streaming}
+                streamingText={streamingText}
+                onClose={() => setChatOpen(false)}
+                noApiKey={noApiKey}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </FadeIn>
 
-      {/* KPIs */}
+      {/* ── KPIs ───────────────────────────────────────────────────────────── */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[1,2,3].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
+          {[1,2,3].map(i => <Skeleton key={i} className="h-28 rounded-xl" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <KpiCard title="Comunidades" value={communities.length} icon={Building2} delay={0} />
-          <KpiCard title="Participantes" value={totalParticipants} icon={Users} delay={100} />
-          <KpiCard title="Potencia total" value={totalPower} suffix=" kWp" icon={Zap} delay={200} />
-        </div>
+        <Stagger className="grid grid-cols-1 sm:grid-cols-3 gap-4" delayChildren={0.1}>
+          <StaggerItem>
+            <KpiCard title="Comunidades" value={communities.length} icon={Building2} />
+          </StaggerItem>
+          <StaggerItem>
+            <KpiCard title="Participantes" value={totalParticipants} icon={Users} />
+          </StaggerItem>
+          <StaggerItem>
+            <KpiCard title="Potencia total" value={totalPower} suffix=" kWp" icon={Zap} />
+          </StaggerItem>
+        </Stagger>
       )}
 
-      {/* Pipeline */}
-      <div className="bg-card border border-border rounded-xl p-4">
+      {/* ── Pipeline section ───────────────────────────────────────────────── */}
+      <FadeIn delay={0.15} className="space-y-5">
+        <div className="flex items-end justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="font-heading text-lg font-semibold tracking-tight text-foreground">
+              Pipeline
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Filtra tus comunidades por estado operativo
+            </p>
+          </div>
+        </div>
+
         {loading ? (
-          <div className="grid grid-cols-4 gap-2">
-            {[1,2,3,4].map(i => <div key={i} className="h-14 rounded-lg bg-muted/40 animate-pulse" />)}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[1,2,3,4].map(i => <Skeleton key={i} className="h-[88px] rounded-xl" />)}
           </div>
         ) : (
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {PIPELINE.map((state) => {
               const count = grouped[state.id].length;
               const isActive = activeState === state.id;
               const Icon = state.icon;
               return (
-                <button
+                <motion.button
                   key={state.id}
                   onClick={() => setActiveState(state.id)}
-                  className={`relative flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all ${
-                    isActive ? "bg-muted ring-1 ring-primary/20" : "hover:bg-muted/50"
+                  whileHover={{ y: -1 }}
+                  transition={{ duration: 0.15 }}
+                  className={`group relative overflow-hidden rounded-xl border bg-card p-4 text-left transition-colors ${
+                    isActive
+                      ? "border-foreground/20 shadow-card"
+                      : "border-border hover:border-foreground/15"
                   }`}
                 >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${state.badgeClass}`}>
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className={`text-xs font-medium truncate ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
-                      {state.label}
+                  <div className="flex items-start justify-between">
+                    <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${state.badgeClass}`}>
+                      <Icon className="h-3.5 w-3.5" />
+                    </div>
+                    <p className="font-heading text-2xl font-semibold leading-none tabular-nums text-foreground">
+                      {count}
                     </p>
-                    <p className="text-lg font-bold text-foreground leading-none mt-0.5">{count}</p>
                   </div>
-                  {isActive && <div className="absolute bottom-0 left-3 right-3 h-0.5 bg-primary rounded-full" />}
-                </button>
+                  <p className={`mt-5 text-xs font-medium transition-colors ${
+                    isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
+                  }`}>
+                    {state.label}
+                  </p>
+                  {isActive && (
+                    <motion.div
+                      layoutId="pipeline-active"
+                      className="absolute inset-x-0 bottom-0 h-0.5 bg-foreground"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                    />
+                  )}
+                </motion.button>
               );
             })}
           </div>
         )}
-      </div>
+      </FadeIn>
 
-      {/* Community list for active state */}
-      <div className="border border-border rounded-xl overflow-hidden bg-card">
-        <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-          {(() => {
-            const state = PIPELINE.find(p => p.id === activeState)!;
-            const Icon = state.icon;
-            return (
-              <>
-                <div className={`w-5 h-5 rounded flex items-center justify-center ${state.badgeClass}`}>
-                  <Icon className="w-3 h-3" />
-                </div>
-                <span className="text-sm font-semibold text-foreground">{state.label}</span>
-                <span className="text-xs text-muted-foreground">
-                  — {grouped[activeState]?.length ?? 0} comunidad{(grouped[activeState]?.length ?? 0) !== 1 ? "es" : ""}
-                </span>
-              </>
-            );
-          })()}
+      {/* ── Community list ─────────────────────────────────────────────────── */}
+      <FadeIn delay={0.2} className="space-y-5">
+        <div className="flex items-end justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="font-heading text-lg font-semibold tracking-tight text-foreground">
+              {activePipeline.label}
+            </h2>
+            <p className="text-xs text-muted-foreground tabular-nums">
+              {activeCount} {activeCount === 1 ? "comunidad" : "comunidades"} en este estado
+            </p>
+          </div>
         </div>
-        {loading ? (
-          <div className="divide-y divide-border">
-            {[1,2].map(i => <div key={i} className="px-4 py-3 h-12 bg-muted/20 animate-pulse" />)}
-          </div>
-        ) : (grouped[activeState]?.length ?? 0) === 0 ? (
-          <div className="px-4 py-12 text-center">
-            <CheckCircle2 className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No hay comunidades en este estado</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-border">
-            {grouped[activeState].map((com) => (
-              <CommunityRow
-                key={com.id}
-                community={com}
-                onNavigate={() => router.push(`/communities/${com.id}`)}
-                onEnviado={() => {
-                  setCommunities(prev => prev.map(c =>
-                    c.id === com.id ? { ...c, phase: "enviado" as const } : c
-                  ));
-                }}
-              />
-            ))}
-          </div>
-        )}
-      </div>
 
-      {/* Activity feed */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <Clock className="w-4 h-4 text-muted-foreground" />
-          Últimos movimientos
-        </h2>
-        <div className="relative border-l-2 border-border ml-2 space-y-0">
-          {communities.slice(0, 5).map((c) => (
-            <div key={c.id} className="relative pl-6 pb-4 last:pb-0">
-              <div className="absolute left-[-5px] top-1.5 w-2 h-2 rounded-full bg-primary/60 ring-2 ring-background" />
-              <p className="text-[13px] text-foreground">
-                <span className="font-medium">{c.name}</span>
-                <span className="text-muted-foreground"> — {c.participants.filter(p => p.status !== "exited").length} participantes activos · {c.potenciaInstalada} kWp</span>
-              </p>
-              <p className="text-[11px] text-muted-foreground mt-0.5 capitalize">{c.phase}</p>
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
+          {loading ? (
+            <div className="divide-y divide-border">
+              {[1,2,3].map(i => <Skeleton key={i} className="m-0 h-14 rounded-none" />)}
             </div>
-          ))}
+          ) : activeCount === 0 ? (
+            <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-medium text-foreground">Sin comunidades aquí</p>
+              <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+                No hay ninguna comunidad en estado “{activePipeline.label.toLowerCase()}”.
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {grouped[activeState].map((com) => (
+                <CommunityRow
+                  key={com.id}
+                  community={com}
+                  onNavigate={() => router.push(`/communities/${com.id}`)}
+                  onEnviado={() => {
+                    setCommunities(prev => prev.map(c =>
+                      c.id === com.id ? { ...c, phase: "enviado" as const } : c
+                    ));
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
-      </div>
+      </FadeIn>
+
+      {/* ── Activity feed ──────────────────────────────────────────────────── */}
+      <FadeIn delay={0.25} className="space-y-5">
+        <div className="flex items-end justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="font-heading text-lg font-semibold tracking-tight text-foreground">
+              Últimos movimientos
+            </h2>
+            <p className="text-xs text-muted-foreground">Actividad reciente en tus comunidades</p>
+          </div>
+          <Clock className="h-4 w-4 text-muted-foreground/60" />
+        </div>
+
+        <div className="rounded-xl border border-border bg-card">
+          {communities.length === 0 ? (
+            <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+              Aún no hay actividad.
+            </div>
+          ) : (
+            <ol className="relative px-6 py-5">
+              <div className="absolute left-[31px] top-6 bottom-6 w-px bg-border" aria-hidden />
+              {communities.slice(0, 5).map((c, i, arr) => (
+                <li key={c.id} className={`relative flex gap-4 ${i < arr.length - 1 ? "pb-5" : ""}`}>
+                  <div className="relative z-10 mt-1 flex h-2 w-2 shrink-0 items-center justify-center rounded-full bg-foreground/30 ring-4 ring-card" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground truncate">{c.name}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
+                      {c.participants.filter(p => p.status !== "exited").length} participantes · {c.potenciaInstalada} kWp
+                      <span className="mx-1.5 text-muted-foreground/40">·</span>
+                      <span className="capitalize">{c.phase}</span>
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+      </FadeIn>
     </div>
   );
 }
