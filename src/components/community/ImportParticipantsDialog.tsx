@@ -26,6 +26,7 @@ interface ParsedRow {
   email: string;
   unidad: string;
   errors: string[];
+  warnings: string[];
 }
 
 const COL_MATCHERS: Record<string, RegExp> = {
@@ -70,6 +71,7 @@ function buildRows(
     const email  = (row[map.email]  ?? "").trim();
     const unidad = (row[map.unidad] ?? "").trim();
     const errors: string[] = [];
+    const warnings: string[] = [];
 
     if (!nombre) errors.push("Nombre obligatorio");
     if (!cups) {
@@ -81,8 +83,11 @@ function buildRows(
       if (seenCups.has(cups)) errors.push("CUPS duplicado en el archivo");
       seenCups.add(cups);
     }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("Email con formato inválido");
+    if (!email) warnings.push("Sin email — no se podrán enviar firmas");
+    if (!unidad) warnings.push("Sin piso/unidad — difícil identificar al participante");
 
-    return { nombre, cups, email, unidad, errors };
+    return { nombre, cups, email, unidad, errors, warnings };
   });
 }
 
@@ -183,6 +188,7 @@ export function ImportParticipantsDialog({
 
   const validRows = parsed.filter(r => r.errors.length === 0);
   const errorRows = parsed.filter(r => r.errors.length > 0);
+  const warnRows  = parsed.filter(r => r.errors.length === 0 && r.warnings.length > 0);
 
   const handleImport = async () => {
     setStep("importing");
@@ -371,6 +377,12 @@ export function ImportParticipantsDialog({
                 <Check className="h-3 w-3 text-primary" />
                 <span className="text-xs font-medium text-primary">{validRows.length} válidos</span>
               </div>
+              {warnRows.length > 0 && (
+                <div className="flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-3 py-1.5">
+                  <AlertCircle className="h-3 w-3 text-amber-600" />
+                  <span className="text-xs font-medium text-amber-700">{warnRows.length} con avisos</span>
+                </div>
+              )}
               {errorRows.length > 0 && (
                 <div className="flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-1.5">
                   <AlertCircle className="h-3 w-3 text-destructive" />
@@ -392,7 +404,7 @@ export function ImportParticipantsDialog({
                 </thead>
                 <tbody className="divide-y divide-border">
                   {parsed.map((row, i) => (
-                    <tr key={i} className={row.errors.length > 0 ? "bg-destructive/5" : ""}>
+                    <tr key={i} className={row.errors.length > 0 ? "bg-destructive/5" : row.warnings.length > 0 ? "bg-amber-50/50" : ""}>
                       <td className="px-3 py-2 text-foreground">{row.nombre || "—"}</td>
                       <td className="px-3 py-2 font-mono text-muted-foreground text-[10px]">{row.cups || "—"}</td>
                       <td className="px-3 py-2 text-muted-foreground">{row.email || "—"}</td>
@@ -403,6 +415,13 @@ export function ImportParticipantsDialog({
                             <AlertCircle className="h-3.5 w-3.5 text-destructive mx-auto" />
                             <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-max max-w-[200px] rounded-md bg-foreground px-2 py-1 text-[10px] text-background opacity-0 group-hover:opacity-100 transition-opacity z-10">
                               {row.errors.join(". ")}
+                            </span>
+                          </span>
+                        ) : row.warnings.length > 0 ? (
+                          <span className="group relative">
+                            <AlertCircle className="h-3.5 w-3.5 text-amber-500 mx-auto" />
+                            <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-max max-w-[200px] rounded-md bg-foreground px-2 py-1 text-[10px] text-background opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                              {row.warnings.join(". ")}
                             </span>
                           </span>
                         ) : (
