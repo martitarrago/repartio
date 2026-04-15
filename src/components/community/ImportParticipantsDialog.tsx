@@ -25,9 +25,10 @@ interface ParsedRow {
   cups: string;
   email: string;
   unidad: string;
+  beta: number | null;
   errors: string[];
   warnings: string[];
-  willUpdate: boolean; // CUPS exists and active → will overwrite if toggle is on
+  willUpdate: boolean;
 }
 
 const COL_MATCHERS: Record<string, RegExp> = {
@@ -35,6 +36,7 @@ const COL_MATCHERS: Record<string, RegExp> = {
   cups:   /^(cups|c[oó]digo.?suministro|punto.?suministro)/i,
   email:  /^(email|e-mail|correo|mail)/i,
   unidad: /^(unidad|piso|puerta|vivienda|unit|direcci[oó]n|portal)/i,
+  beta:   /^(beta|coeficiente|coef\.?|reparto|%|porcentaje)/i,
 };
 
 const FIELD_LABELS: Record<string, { label: string; required: boolean }> = {
@@ -42,6 +44,7 @@ const FIELD_LABELS: Record<string, { label: string; required: boolean }> = {
   cups:   { label: "CUPS", required: true },
   email:  { label: "Email", required: false },
   unidad: { label: "Unidad / Piso", required: false },
+  beta:   { label: "Coeficiente β", required: false },
 };
 
 function autoMap(headers: string[]): Record<string, string> {
@@ -53,6 +56,16 @@ function autoMap(headers: string[]): Record<string, string> {
     }
   }
   return map;
+}
+
+function parseBeta(raw: string): number | null {
+  if (!raw || raw.trim() === "") return null;
+  const clean = raw.trim().replace(",", ".").replace("%", "");
+  const n = parseFloat(clean);
+  if (isNaN(n) || n < 0) return null;
+  // If value looks like a percentage (e.g. 25 meaning 25%)
+  if (raw.includes("%") || n > 1) return n / 100;
+  return n;
 }
 
 function buildRows(
@@ -69,6 +82,7 @@ function buildRows(
     const cups   = (row[map.cups]   ?? "").trim().toUpperCase().replace(/\s/g, "");
     const email  = (row[map.email]  ?? "").trim();
     const unidad = (row[map.unidad] ?? "").trim();
+    const beta   = map.beta ? parseBeta(row[map.beta] ?? "") : null;
     const errors: string[] = [];
     const warnings: string[] = [];
     let willUpdate = false;
@@ -94,7 +108,7 @@ function buildRows(
     if (!email) warnings.push("Sin email — no se podrán enviar firmas");
     if (!unidad) warnings.push("Sin piso/unidad — difícil identificar al participante");
 
-    return { nombre, cups, email, unidad, errors, warnings, willUpdate };
+    return { nombre, cups, email, unidad, beta, errors, warnings, willUpdate };
   });
 }
 
@@ -126,7 +140,7 @@ export function ImportParticipantsDialog({
   onImported,
 }: ImportParticipantsDialogProps) {
   const [step, setStep] = useState<"upload" | "mapping" | "preview" | "importing" | "result">("upload");
-  const [importResult, setImportResult] = useState<{ ok: number; updated: number; failed: number; errors: string[] }>({ ok: 0, updated: 0, failed: 0, errors: [] });
+  const [importResult, setImportResult] = useState<{ ok: number; updated: number; failed: number; betaOk: boolean | null; errors: string[] }>({ ok: 0, updated: 0, failed: 0, betaOk: null, errors: [] });
   const [fileName, setFileName] = useState("");
   const [headers, setHeaders] = useState<string[]>([]);
   const [rawRows, setRawRows] = useState<Record<string, string>[]>([]);
@@ -146,7 +160,7 @@ export function ImportParticipantsDialog({
     setParsed([]);
     setOverwrite(false);
     setImportProgress(0);
-    setImportResult({ ok: 0, updated: 0, failed: 0, errors: [] });
+    setImportResult({ ok: 0, updated: 0, failed: 0, betaOk: null, errors: [] });
   }, []);
 
   const handleClose = (open: boolean) => {
@@ -207,6 +221,9 @@ export function ImportParticipantsDialog({
   const newRows     = parsed.filter(r => r.errors.length === 0 && !r.willUpdate);
   const errorRows   = parsed.filter(r => r.errors.length > 0);
   const warnRows    = parsed.filter(r => r.errors.length === 0 && r.warnings.length > 0);
+  const hasBeta     = validRows.some(r => r.beta !== null);
+  const betaSum     = hasBeta ? validRows.reduce((s, r) => s + (r.beta ?? 0), 0) : 0;
+  const betaSumOk   = hasBeta && Math.abs(betaSum - 1) < 1e-6;
 
   const handleImport = async () => {
     setStep("importing");
@@ -256,7 +273,27 @@ export function ImportParticipantsDialog({
     }
 
     if (imported.length + updated.length > 0) onImported([...imported, ...updated]);
-    setImportResult({ ok: imported.length, updated: updated.length, failed: apiErrors.length, errors: apiErrors });
+
+    // ── Coeficientes β ───────────────────────────────────────────
+    let betaOk: boolean | null = null;
+    const cupToId = new Map([...imported, ...updated].map(p => [p.cups, p.id]));
+    const betaEntradas = rows
+      .filter(r => r.errors.length === 0 && r.beta !== null)
+      .map(r => ({ participanteId: cupToId.get(r.cups), valor: r.beta!.toFixed(6) }))
+      .filter(e => e.participanteId);
+
+    if (betaEntradas.length > 0) {
+      try {
+        const res = await fetch(`/api/installations/${communityId}/coefficients`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ modo: "CONSTANTE", entradas: betaEntradas }),
+        });
+        betaOk = res.ok;
+      } catch { betaOk = false; }
+    }
+
+    setImportResult({ ok: imported.length, updated: updated.length, failed: apiErrors.length, betaOk, errors: apiErrors });
     setStep("result");
   };
 
@@ -420,6 +457,21 @@ export function ImportParticipantsDialog({
                   <span className="text-xs font-medium text-destructive">{errorRows.length} con errores</span>
                 </div>
               )}
+              {hasBeta && (
+                <div className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 border ${
+                  betaSumOk
+                    ? "bg-primary/10 border-primary/20"
+                    : "bg-amber-50 border-amber-200"
+                }`}>
+                  {betaSumOk
+                    ? <Check className="h-3 w-3 text-primary" />
+                    : <AlertCircle className="h-3 w-3 text-amber-600" />
+                  }
+                  <span className={`text-xs font-medium tabular-nums ${betaSumOk ? "text-primary" : "text-amber-700"}`}>
+                    Σβ = {betaSum.toFixed(6)}{!betaSumOk && " ≠ 1"}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Table */}
@@ -431,6 +483,7 @@ export function ImportParticipantsDialog({
                     <th className="text-left font-semibold text-muted-foreground px-3 py-2">CUPS</th>
                     <th className="text-left font-semibold text-muted-foreground px-3 py-2">Email</th>
                     <th className="text-left font-semibold text-muted-foreground px-3 py-2">Unidad</th>
+                    {hasBeta && <th className="text-right font-semibold text-muted-foreground px-3 py-2 w-20">β</th>}
                     <th className="text-center font-semibold text-muted-foreground px-3 py-2 w-16">Estado</th>
                   </tr>
                 </thead>
@@ -445,6 +498,11 @@ export function ImportParticipantsDialog({
                       <td className="px-3 py-2 font-mono text-muted-foreground text-[10px]">{row.cups || "—"}</td>
                       <td className="px-3 py-2 text-muted-foreground">{row.email || "—"}</td>
                       <td className="px-3 py-2 text-muted-foreground">{row.unidad || "—"}</td>
+                      {hasBeta && (
+                        <td className="px-3 py-2 text-right font-mono text-xs text-foreground">
+                          {row.beta !== null ? (row.beta * 100).toFixed(4) + "%" : "—"}
+                        </td>
+                      )}
                       <td className="px-3 py-2 text-center">
                         {row.errors.length > 0 ? (
                           <span className="group relative">
@@ -527,14 +585,22 @@ export function ImportParticipantsDialog({
             {importResult.ok + importResult.updated > 0 ? (
               <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
                 <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                <p className="text-sm text-foreground">
-                  {importResult.ok > 0 && (
-                    <span className="font-semibold">{importResult.ok} participante{importResult.ok !== 1 ? "s" : ""} añadido{importResult.ok !== 1 ? "s" : ""}. </span>
+                <div className="space-y-0.5">
+                  <p className="text-sm text-foreground">
+                    {importResult.ok > 0 && (
+                      <span className="font-semibold">{importResult.ok} participante{importResult.ok !== 1 ? "s" : ""} añadido{importResult.ok !== 1 ? "s" : ""}. </span>
+                    )}
+                    {importResult.updated > 0 && (
+                      <span className="font-semibold">{importResult.updated} actualizado{importResult.updated !== 1 ? "s" : ""}.</span>
+                    )}
+                  </p>
+                  {importResult.betaOk === true && (
+                    <p className="text-xs text-primary">Coeficientes β guardados correctamente.</p>
                   )}
-                  {importResult.updated > 0 && (
-                    <span className="font-semibold">{importResult.updated} actualizado{importResult.updated !== 1 ? "s" : ""}.</span>
+                  {importResult.betaOk === false && (
+                    <p className="text-xs text-amber-700">Los participantes se importaron pero los coeficientes β no se pudieron guardar. Introdúcelos manualmente en el editor.</p>
                   )}
-                </p>
+                </div>
               </div>
             ) : (
               <div className="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3">
