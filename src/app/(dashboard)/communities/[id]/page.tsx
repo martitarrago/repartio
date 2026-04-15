@@ -6,8 +6,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { BetaCoefficients } from "@/components/community/BetaCoefficients";
 import { ParticipantsListPro } from "@/components/community/ParticipantsListPro";
-import { DocumentsTabPro } from "@/components/community/DocumentsTabPro";
-import { TxtGeneratorTabPro } from "@/components/community/TxtGeneratorTabPro";
+import { DocumentosTab } from "@/components/community/DocumentosTab";
 import { SignaturesTab } from "@/components/community/SignaturesTab";
 import { GestorPanel } from "@/components/community/GestorPanel";
 import {
@@ -468,12 +467,7 @@ export default function CommunityDetailPage() {
         )}
 
         {activeStep === "documento" && (
-          <div className="space-y-6">
-            <TxtGeneratorTabPro community={community} communityId={id} conjuntoId={conjuntoId} />
-            <div className="border-t border-border pt-6">
-              <DocumentsTabPro community={community} communityId={id} />
-            </div>
-          </div>
+          <DocumentosTab community={community} communityId={id} conjuntoId={conjuntoId} />
         )}
 
         {activeStep === "firmas" && (
