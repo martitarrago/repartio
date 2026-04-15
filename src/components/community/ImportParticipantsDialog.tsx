@@ -123,11 +123,11 @@ function parseFile(data: ArrayBuffer): { headers: string[]; rows: Record<string,
 function downloadTemplate() {
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet([
-    ["Nombre", "CUPS", "Email", "Unidad"],
-    ["María García López", "ES0021000000000001AA1P", "maria@ejemplo.com", "1ºA"],
-    ["Juan Rodríguez Sanz", "ES0021000000000002BB2Q", "juan@ejemplo.com", "2ºB"],
+    ["Nombre", "CUPS", "Email", "Unidad", "Beta"],
+    ["María García López", "ES0021000000000001AA1P", "maria@ejemplo.com", "1ºA", 0.5],
+    ["Juan Rodríguez Sanz", "ES0021000000000002BB2Q", "juan@ejemplo.com", "2ºB", 0.5],
   ]);
-  ws["!cols"] = [{ wch: 25 }, { wch: 26 }, { wch: 28 }, { wch: 12 }];
+  ws["!cols"] = [{ wch: 25 }, { wch: 26 }, { wch: 28 }, { wch: 12 }, { wch: 10 }];
   XLSX.utils.book_append_sheet(wb, ws, "Participantes");
   XLSX.writeFile(wb, "plantilla_participantes.xlsx");
 }
