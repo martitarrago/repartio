@@ -8,6 +8,7 @@ const crearSchema = z.object({
   cups: z.string().length(22),
   email: z.string().email().optional().or(z.literal("")),
   unit: z.string().optional(),
+  overwrite: z.boolean().optional(),
 });
 
 export async function POST(
@@ -34,7 +35,7 @@ export async function POST(
     return NextResponse.json({ message: "Datos inválidos", errors: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { name, cups, email, unit } = parsed.data;
+  const { name, cups, email, unit, overwrite } = parsed.data;
   const cupsUpper = cups.toUpperCase();
 
   // Si el CUPS ya existe en esta comunidad, distinguir activo vs. baja
@@ -43,11 +44,11 @@ export async function POST(
   });
 
   if (existing) {
-    if (existing.activo) {
+    if (existing.activo && !overwrite) {
       return NextResponse.json({ message: "CUPS ya registrado en esta comunidad" }, { status: 409 });
     }
-    // Estaba de baja → reactivar con los nuevos datos
-    const reactivado = await prisma.participante.update({
+    // Estaba de baja, o está activo con overwrite → actualizar con los nuevos datos
+    const actualizado = await prisma.participante.update({
       where: { id: existing.id },
       data: {
         nombre: name,
@@ -57,10 +58,10 @@ export async function POST(
         estadoParticipante: "ACTIVO",
         estadoFirma: "PENDIENTE",
         fechaBaja: null,
-        fechaAlta: new Date(),
+        fechaAlta: existing.activo ? existing.fechaAlta : new Date(),
       },
     });
-    return NextResponse.json({ id: reactivado.id, reactivated: true }, { status: 200 });
+    return NextResponse.json({ id: actualizado.id, updated: true }, { status: 200 });
   }
 
   const count = await prisma.participante.count({ where: { instalacionId, activo: true } });
