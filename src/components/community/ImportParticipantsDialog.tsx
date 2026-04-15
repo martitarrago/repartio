@@ -434,6 +434,19 @@ export function ImportParticipantsDialog({
               </table>
             </div>
 
+            {(() => {
+              const noEmail = validRows.filter(r => !r.email).length;
+              return noEmail > 0 ? (
+                <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                  <AlertCircle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
+                  <p className="text-xs text-amber-800">
+                    <span className="font-semibold">{noEmail} participante{noEmail !== 1 ? "s" : ""} sin email.</span>{" "}
+                    No podrán recibir el enlace de firma digital. Podrás añadir su email más tarde desde el detalle de la comunidad.
+                  </p>
+                </div>
+              ) : null;
+            })()}
+
             <div className="flex items-center justify-between pt-1">
               <p className="text-[10px] text-muted-foreground">
                 Las filas con errores se omitirán automáticamente.
