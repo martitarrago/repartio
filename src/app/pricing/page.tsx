@@ -75,16 +75,15 @@ export default function PricingPage() {
 
       {/* Header */}
       <div className="max-w-5xl mx-auto px-6 py-10 text-center">
-        {/* Beta banner */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EF9F27]/10 border border-[#EF9F27]/30 text-xs font-medium text-[#B8760A] mb-8">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#EF9F27] animate-pulse" />
-          Estamos en beta — Precios sujetos a cambios
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 ring-1 ring-inset ring-amber-600/15 text-[11px] font-medium text-amber-800 mb-8">
+          <span className="w-1 h-1 rounded-full bg-amber-600" />
+          Beta — Precios sujetos a cambios
         </div>
 
-        <h1 className="text-4xl font-bold text-gray-900 mb-4 font-heading">
+        <h1 className="text-4xl font-semibold tracking-tight text-gray-900 mb-3 font-heading">
           Simple, transparente, sin sorpresas
         </h1>
-        <p className="text-lg text-gray-500 max-w-xl mx-auto">
+        <p className="text-base text-gray-500 max-w-xl mx-auto">
           Empieza gratis. Escala cuando lo necesites.
         </p>
       </div>
@@ -95,27 +94,27 @@ export default function PricingPage() {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative bg-white rounded-2xl p-7 flex flex-col transition-all duration-200 hover:-translate-y-1 ${
+              className={`relative bg-white rounded-xl p-7 flex flex-col transition-all duration-200 ${
                 plan.highlighted
-                  ? "ring-2 ring-gray-900 shadow-xl hover:shadow-2xl"
-                  : "border border-gray-200 shadow-sm hover:shadow-lg hover:border-gray-300"
+                  ? "border border-gray-900 shadow-lift"
+                  : "border border-gray-200 hover:border-gray-300 hover:shadow-card"
               }`}
             >
               {plan.highlighted && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="bg-gray-900 text-white text-[10px] font-semibold px-3 py-1 rounded-full tracking-wide uppercase">
+                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
+                  <span className="bg-gray-900 text-white text-[10px] font-medium px-2.5 py-1 rounded-full tracking-wide uppercase">
                     Más popular
                   </span>
                 </div>
               )}
 
-              <div className="mb-6">
-                <p className="text-sm font-semibold text-gray-500 mb-1">{plan.name}</p>
+              <div className="mb-7">
+                <p className="text-sm font-medium text-gray-600 mb-2">{plan.name}</p>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
+                  <span className="text-4xl font-semibold tracking-tight text-gray-900 tabular-nums">{plan.price}</span>
                   <span className="text-gray-400 text-sm">{plan.period}</span>
                 </div>
-                <p className="text-sm text-gray-500 mt-2">{plan.description}</p>
+                <p className="text-sm text-gray-500 mt-3 leading-relaxed">{plan.description}</p>
               </div>
 
               <ul className="space-y-2.5 mb-8 flex-1">
@@ -131,7 +130,7 @@ export default function PricingPage() {
 
               <a
                 href={plan.ctaHref}
-                className={`w-full text-center py-2.5 rounded-xl text-sm font-medium transition-all active:scale-[0.98] ${plan.ctaStyle}`}
+                className={`w-full text-center h-10 inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${plan.ctaStyle}`}
               >
                 {plan.cta}
               </a>

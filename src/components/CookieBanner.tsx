@@ -25,7 +25,7 @@ export function CookieBanner() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed bottom-4 left-4 right-4 z-50 mx-auto flex max-w-3xl items-center justify-between gap-4 rounded-xl border border-white/10 bg-gray-900/95 px-5 py-3 text-xs text-white/70 shadow-lift backdrop-blur-xl sm:bottom-6"
+          className="fixed bottom-4 left-4 right-4 z-50 mx-auto flex max-w-2xl items-center justify-between gap-4 rounded-lg border border-white/10 bg-gray-900/95 px-4 py-3 text-xs text-white/75 shadow-lift backdrop-blur-xl sm:bottom-6"
         >
           <p className="leading-relaxed">
             Usamos cookies esenciales para el funcionamiento del servicio.{" "}
