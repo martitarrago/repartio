@@ -118,7 +118,8 @@ export function ImportParticipantsDialog({
   existingCups,
   onImported,
 }: ImportParticipantsDialogProps) {
-  const [step, setStep] = useState<"upload" | "mapping" | "preview" | "importing">("upload");
+  const [step, setStep] = useState<"upload" | "mapping" | "preview" | "importing" | "result">("upload");
+  const [importResult, setImportResult] = useState<{ ok: number; failed: number; errors: string[] }>({ ok: 0, failed: 0, errors: [] });
   const [fileName, setFileName] = useState("");
   const [headers, setHeaders] = useState<string[]>([]);
   const [rawRows, setRawRows] = useState<Record<string, string>[]>([]);
@@ -136,6 +137,7 @@ export function ImportParticipantsDialog({
     setColumnMap({});
     setParsed([]);
     setImportProgress(0);
+    setImportResult({ ok: 0, failed: 0, errors: [] });
   }, []);
 
   const handleClose = (open: boolean) => {
@@ -193,9 +195,11 @@ export function ImportParticipantsDialog({
   const handleImport = async () => {
     setStep("importing");
     const imported: Participant[] = [];
+    const apiErrors: string[] = [];
     let done = 0;
+    const rows = validRows; // capture before any state changes
 
-    for (const row of validRows) {
+    for (const row of rows) {
       try {
         const res = await fetch(`/api/communities/${communityId}/participants`, {
           method: "POST",
@@ -208,9 +212,9 @@ export function ImportParticipantsDialog({
           }),
         });
         if (res.ok) {
-          const { id } = await res.json();
+          const data = await res.json();
           imported.push({
-            id,
+            id: data.id,
             name: row.nombre,
             cups: row.cups,
             email: row.email,
@@ -220,16 +224,20 @@ export function ImportParticipantsDialog({
             signatureState: "pending",
             entryDate: new Date().toISOString().slice(0, 10),
           });
+        } else {
+          const data = await res.json().catch(() => ({}));
+          apiErrors.push(`${row.nombre}: ${data.message ?? `Error ${res.status}`}`);
         }
-      } catch {
-        // skip row
+      } catch (e) {
+        apiErrors.push(`${row.nombre}: error de red`);
       }
       done++;
-      setImportProgress(Math.round((done / validRows.length) * 100));
+      setImportProgress(Math.round((done / rows.length) * 100));
     }
 
-    onImported(imported);
-    handleClose(false);
+    if (imported.length > 0) onImported(imported);
+    setImportResult({ ok: imported.length, failed: apiErrors.length, errors: apiErrors });
+    setStep("result");
   };
 
   return (
@@ -476,6 +484,55 @@ export function ImportParticipantsDialog({
                 className="h-full rounded-full bg-primary transition-all duration-300"
                 style={{ width: `${importProgress}%` }}
               />
+            </div>
+          </div>
+        )}
+
+        {/* ── Result ─────────────────────────────────────────────── */}
+        {step === "result" && (
+          <div className="space-y-4">
+            {importResult.ok > 0 ? (
+              <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
+                <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                <p className="text-sm text-foreground">
+                  <span className="font-semibold">{importResult.ok} participante{importResult.ok !== 1 ? "s" : ""} importado{importResult.ok !== 1 ? "s" : ""} correctamente.</span>
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3">
+                <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                <p className="text-sm text-foreground font-semibold">No se pudo importar ningún participante.</p>
+              </div>
+            )}
+
+            {importResult.errors.length > 0 && (
+              <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 space-y-1.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {importResult.failed} fila{importResult.failed !== 1 ? "s" : ""} fallidas
+                </p>
+                <ul className="space-y-1">
+                  {importResult.errors.map((e, i) => (
+                    <li key={i} className="text-xs text-destructive">{e}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-1">
+              {importResult.ok === 0 && (
+                <button
+                  onClick={reset}
+                  className="px-4 py-2 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-muted transition-colors"
+                >
+                  Reintentar
+                </button>
+              )}
+              <button
+                onClick={() => handleClose(false)}
+                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
+              >
+                {importResult.ok > 0 ? "Cerrar" : "Cancelar"}
+              </button>
             </div>
           </div>
         )}
