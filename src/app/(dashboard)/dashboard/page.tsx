@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { validateProject, validateAllocationSum, type Community } from "@/lib/types/community";
 import { KpiCard } from "@/components/dashboard/KpiCard";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // ── Pipeline ────────────────────────────────────────────────────────────────
 
@@ -410,20 +412,20 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-8 py-8 space-y-6 animate-fade-in pb-6">
+    <div className="max-w-5xl mx-auto px-6 sm:px-8 py-8 space-y-6 animate-fade-in pb-6">
       {/* Welcome */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold font-heading text-foreground">Panel de Control</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Resumen del estado de todas tus comunidades</p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="font-heading text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+            Panel de Control
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Resumen del estado de todas tus comunidades
+          </p>
         </div>
-        <a
-          href="/communities/new"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-opacity"
-          style={{ background: "#EF9F27" }}
-        >
-          + Nueva comunidad
-        </a>
+        <Button asChild variant="accent">
+          <a href="/communities/new">+ Nueva comunidad</a>
+        </Button>
       </div>
 
       {/* AI Chat input */}
@@ -462,11 +464,11 @@ export default function DashboardPage() {
 
       {/* KPIs */}
       {loading ? (
-        <div className="grid grid-cols-3 gap-4">
-          {[1,2,3].map(i => <div key={i} className="h-24 rounded-xl bg-muted/40 animate-pulse" />)}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[1,2,3].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <KpiCard title="Comunidades" value={communities.length} icon={Building2} delay={0} />
           <KpiCard title="Participantes" value={totalParticipants} icon={Users} delay={100} />
           <KpiCard title="Potencia total" value={totalPower} suffix=" kWp" icon={Zap} delay={200} />
