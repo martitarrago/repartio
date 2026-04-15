@@ -51,17 +51,17 @@ function LoginForm() {
   }
 
   return (
-    <FadeIn className="w-full max-w-sm">
+    <FadeIn className="w-full max-w-[360px]">
       <div className="mb-8 text-center">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground">
+        <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
           Iniciar sesión
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-1.5 text-sm text-muted-foreground">
           Accede a tu cuenta de Repartio
         </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-white p-7 shadow-card">
+      <div className="rounded-lg border border-border bg-white p-7 shadow-xs">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
           {error && (
             <div
@@ -127,22 +127,13 @@ function LoginForm() {
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-            {isSubmitting ? "Entrando..." : "Entrar"}
+            {isSubmitting ? "Entrando…" : "Entrar"}
           </Button>
-
-          <div className="relative my-1">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-2 text-muted-foreground">o</span>
-            </div>
-          </div>
 
           <button
             type="button"
             onClick={() => signIn("google", { callbackUrl })}
-            className="flex w-full items-center justify-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-muted hover:border-foreground/20 active:scale-[0.98]"
+            className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-border bg-white px-3 text-sm font-medium text-foreground shadow-xs transition-colors hover:bg-muted"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />

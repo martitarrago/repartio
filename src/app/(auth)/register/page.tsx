@@ -62,17 +62,17 @@ export default function RegisterPage() {
   ];
 
   return (
-    <FadeIn className="w-full max-w-sm">
+    <FadeIn className="w-full max-w-[360px]">
       <div className="mb-8 text-center">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground">
+        <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
           Crear cuenta
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-1.5 text-sm text-muted-foreground">
           Empieza a gestionar tu autoconsumo
         </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-white p-7 shadow-card">
+      <div className="rounded-lg border border-border bg-white p-7 shadow-xs">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
           {error && (
             <div
