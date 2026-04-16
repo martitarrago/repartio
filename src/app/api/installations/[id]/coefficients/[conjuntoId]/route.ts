@@ -81,7 +81,7 @@ export async function PUT(
 
       if (invalidarFirmas) {
         await tx.participante.updateMany({
-          where: { instalacion: { id: instalacionId }, estadoFirma: "FIRMADO" },
+          where: { instalacionId, estadoFirma: "FIRMADO" },
           data: { estadoFirma: "PENDIENTE", firmadoEn: null },
         });
       }
