@@ -68,6 +68,7 @@ export interface Participant {
   cuotaParticipacion?: number;
   status: "active" | "pending" | "exited";
   signatureState: SignatureState;
+  conjuntoFirmadoId?: string;
   entryDate: string;
   exitDate?: string;
 }
@@ -179,7 +180,11 @@ export function validateProject(community: Community): ValidationIssue[] {
     issues.push({ type: "warning", message: "Instalaciones >100kW suelen requerir modalidad con excedentes", communityId: community.id });
   }
 
-  const pendingSigs = active.filter(p => p.signatureState === "pending").length;
+  const conjuntoActivo = community.conjuntoId;
+  const pendingSigs = active.filter(p =>
+    p.signatureState === "pending" ||
+    (p.signatureState === "signed" && conjuntoActivo && p.conjuntoFirmadoId !== conjuntoActivo)
+  ).length;
   if (pendingSigs > 0) issues.push({ type: "warning", message: `${pendingSigs} firma(s) pendiente(s)`, action: "Solicitar firmas", communityId: community.id });
 
   const docs = community.documents;

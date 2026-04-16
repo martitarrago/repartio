@@ -196,6 +196,10 @@ model Participante {
   signedDocumentUrl     String?            // URL del PDF firmado con certificado
   firmadoEn             DateTime?
 
+  // ── Vinculación firma ↔ coeficientes ──
+  conjuntoFirmadoId     String?            // Conjunto de coeficientes que se firmó
+  conjuntoFirmado       ConjuntoCoeficientes? @relation("firmaConjunto", fields: [conjuntoFirmadoId], references: [id], onDelete: SetNull)
+
   instalacion    Instalacion           @relation(fields: [instalacionId], references: [id], onDelete: Cascade)
   entradas       EntradaCoeficiente[]
   firmaTokens    FirmaToken[]
@@ -257,10 +261,11 @@ model ConjuntoCoeficientes {
   creadoEn       DateTime        @default(now())
   actualizadoEn  DateTime        @updatedAt
 
-  instalacion    Instalacion          @relation(fields: [instalacionId], references: [id], onDelete: Cascade)
-  creadoPor      Usuario?             @relation(fields: [creadoPorId], references: [id])
-  entradas       EntradaCoeficiente[]
-  historial      HistorialFichero[]
+  instalacion         Instalacion          @relation(fields: [instalacionId], references: [id], onDelete: Cascade)
+  creadoPor           Usuario?             @relation(fields: [creadoPorId], references: [id])
+  entradas            EntradaCoeficiente[]
+  historial           HistorialFichero[]
+  firmasParticipantes Participante[]       @relation("firmaConjunto")
 
   @@map("conjuntos_coeficientes")
 }

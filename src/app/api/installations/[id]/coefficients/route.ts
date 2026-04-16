@@ -75,17 +75,16 @@ export async function POST(
 
   try {
     const conjunto = await prisma.$transaction(async (tx) => {
+      // Archivar conjuntos anteriores no archivados
+      await tx.conjuntoCoeficientes.updateMany({
+        where: { instalacionId, estado: { not: "ARCHIVADO" } },
+        data: { estado: "ARCHIVADO" },
+      });
+
       const conj = await tx.conjuntoCoeficientes.create({
         data: { instalacionId, creadoPorId: userId, modo: parsed.data.modo, estado: "BORRADOR" },
       });
       await crearEntradas(tx, conj.id, parsed.data);
-
-      if (invalidarFirmas) {
-        await tx.participante.updateMany({
-          where: { instalacionId, estadoFirma: "FIRMADO" },
-          data: { estadoFirma: "PENDIENTE", firmadoEn: null },
-        });
-      }
 
       return conj;
     });

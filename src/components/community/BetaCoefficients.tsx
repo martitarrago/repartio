@@ -1,7 +1,17 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { Sparkles, RotateCcw, Check, ChevronDown, Info, Calculator, Save, Loader2 } from "lucide-react";
+import { Sparkles, RotateCcw, Check, ChevronDown, Info, Calculator, Save, Loader2, ShieldAlert, AlertTriangle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { type Participant, type SuggestionMethod, SUGGESTION_METHODS, type CoeficientMode } from "@/lib/types/community";
 
 interface BetaCoefficientsProps {
@@ -27,8 +37,18 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
   const [showVariableMsg, setShowVariableMsg] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedOk, setSavedOk] = useState(false);
+  const [showInvalidateDialog, setShowInvalidateDialog] = useState(false);
 
   const activeParticipants = useMemo(() => participants.filter(p => p.status !== "exited"), [participants]);
+
+  // Firmas vinculadas al conjunto actual — se invalidarán si se guardan nuevos coeficientes
+  const firmasVinculadas = useMemo(() =>
+    activeParticipants.filter(p =>
+      p.signatureState === "signed" && p.conjuntoFirmadoId === conjuntoId
+    ),
+    [activeParticipants, conjuntoId]
+  );
+  const hayFirmasVinculadas = firmasVinculadas.length > 0;
   const totalBeta = useMemo(() => activeParticipants.reduce((s, p) => s + p.beta, 0), [activeParticipants]);
   const totalPercent = +(totalBeta * 100).toFixed(2);
   const isComplete = Math.abs(totalPercent - 100) < 0.01;
@@ -66,7 +86,7 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
     onParticipantsChange(participants.map(p => ({ ...p, beta: eq })));
   };
 
-  const handleSave = useCallback(async () => {
+  const doSave = useCallback(async (forceNewConjunto = false) => {
     if (!isComplete) return;
     setSaving(true);
     setSavedOk(false);
@@ -76,16 +96,20 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
         valor: p.beta.toFixed(6),
       }));
 
+      // Si hay firmas vinculadas → forzar POST (nuevo conjunto) para que
+      // conjuntoFirmadoId de los participantes ya no coincida con el activo
+      const usePost = !conjuntoId || forceNewConjunto;
+
       let res: Response;
-      if (conjuntoId) {
-        res = await fetch(`/api/installations/${communityId}/coefficients/${conjuntoId}`, {
-          method: "PUT",
+      if (usePost) {
+        res = await fetch(`/api/installations/${communityId}/coefficients`, {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ modo: "CONSTANTE", entradas }),
         });
       } else {
-        res = await fetch(`/api/installations/${communityId}/coefficients`, {
-          method: "POST",
+        res = await fetch(`/api/installations/${communityId}/coefficients/${conjuntoId}`, {
+          method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ modo: "CONSTANTE", entradas }),
         });
@@ -102,6 +126,19 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
     }
   }, [activeParticipants, communityId, conjuntoId, isComplete, onSaved]);
 
+  const handleSave = useCallback(() => {
+    if (hayFirmasVinculadas) {
+      setShowInvalidateDialog(true);
+    } else {
+      doSave(false);
+    }
+  }, [hayFirmasVinculadas, doSave]);
+
+  const handleConfirmInvalidate = useCallback(() => {
+    setShowInvalidateDialog(false);
+    doSave(true); // fuerza nuevo conjunto → firmas quedan huérfanas
+  }, [doSave]);
+
   // Donut chart
   const size = 180;
   const strokeWidth = 28;
@@ -111,6 +148,22 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
 
   return (
     <div className="space-y-5 animate-fade-in">
+      {/* Banner de advertencia — firmas vinculadas al conjunto actual */}
+      {hayFirmasVinculadas && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+          <div className="text-sm">
+            <p className="font-medium text-amber-800">
+              Acuerdo firmado por {firmasVinculadas.length} participante{firmasVinculadas.length !== 1 ? "s" : ""}
+            </p>
+            <p className="mt-0.5 text-amber-700">
+              {firmasVinculadas.map(p => p.name).join(", ")} firmaron estos coeficientes.
+              Si guardas valores nuevos, las firmas dejarán de ser válidas y tendrás que solicitar una nueva ronda.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Mode selector + actions */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center rounded-xl bg-secondary p-1 text-xs font-medium">
@@ -320,6 +373,39 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
           })}
         </div>
       </div>
+
+      {/* Diálogo de confirmación — invalidar firmas */}
+      <AlertDialog open={showInvalidateDialog} onOpenChange={(open) => !open && setShowInvalidateDialog(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-destructive" />
+              Esto invalidará las firmas
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <p>
+                  <strong>{firmasVinculadas.length} participante{firmasVinculadas.length !== 1 ? "s" : ""}</strong>{" "}
+                  {firmasVinculadas.length !== 1 ? "han" : "ha"} firmado el acuerdo de reparto actual.
+                </p>
+                <ul className="ml-4 list-disc space-y-1 text-muted-foreground">
+                  <li>Las firmas dejarán de ser válidas para los nuevos coeficientes.</li>
+                  <li>Tendrás que solicitar una nueva ronda de firmas.</li>
+                </ul>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmInvalidate}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Entiendo, guardar igualmente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

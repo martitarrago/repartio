@@ -119,6 +119,15 @@ export async function POST(
 
   const now = new Date();
 
+  // Find the active conjunto to link the signature to specific coefficients
+  const activeConjunto = await prisma.conjuntoCoeficientes.findFirst({
+    where: {
+      instalacionId: firmaToken.participante.instalacionId,
+      estado: { not: "ARCHIVADO" },
+    },
+    orderBy: { actualizadoEn: "desc" },
+  });
+
   // Mark token as used and update participant signature state
   await prisma.$transaction([
     prisma.firmaToken.update({
@@ -127,7 +136,11 @@ export async function POST(
     }),
     prisma.participante.update({
       where: { id: firmaToken.participanteId },
-      data: { estadoFirma: "FIRMADO", firmadoEn: now },
+      data: {
+        estadoFirma: "FIRMADO",
+        firmadoEn: now,
+        conjuntoFirmadoId: activeConjunto?.id ?? null,
+      },
     }),
   ]);
 

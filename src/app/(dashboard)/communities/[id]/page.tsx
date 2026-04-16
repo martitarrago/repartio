@@ -166,11 +166,13 @@ export default function CommunityDetailPage() {
     const participantes: StepStatus = validParticipants.length > 0 ? "complete" : (activeParticipants.length > 0 ? "error" : "pending");
     const coeficientes: StepStatus = activeParticipants.length === 0 ? "pending" : (savedBetaValid ? "complete" : "error");
     const documento: StepStatus = community.documents?.txt ? "complete" : "pending";
-    const allSigned = activeParticipants.length > 0 && activeParticipants.every(p => p.signatureState === "signed");
+    const allSigned = activeParticipants.length > 0 && activeParticipants.every(
+      p => p.signatureState === "signed" && p.conjuntoFirmadoId === conjuntoId
+    );
     const anyRejected = activeParticipants.some(p => p.signatureState === "rejected");
     const firmas: StepStatus = anyRejected ? "error" : (allSigned ? "complete" : "pending");
     return { detalles, participantes, coeficientes, documento, firmas };
-  }, [name, cau, community, activeParticipants, savedBetaValid]);
+  }, [name, cau, community, activeParticipants, savedBetaValid, conjuntoId]);
 
   const allComplete = Object.values(stepStatuses).every(s => s === "complete");
   const isEnviado = baseCommunity?.phase === "enviado";
@@ -471,7 +473,7 @@ export default function CommunityDetailPage() {
         )}
 
         {activeStep === "firmas" && (
-          <SignaturesTab community={community} communityId={id} validationErrors={errors} />
+          <SignaturesTab community={community} communityId={id} conjuntoId={conjuntoId} validationErrors={errors} />
         )}
       </div>
     </div>

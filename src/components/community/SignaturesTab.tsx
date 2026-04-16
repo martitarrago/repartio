@@ -13,6 +13,7 @@ interface ValidationIssue {
 interface SignaturesTabProps {
   community?: Community;
   communityId?: string;
+  conjuntoId?: string;
   validationErrors?: ValidationIssue[];
 }
 
@@ -24,6 +25,7 @@ interface Signer {
   cups: string;
   state: "signed" | "pending" | "rejected";
   signedAt?: string;
+  conjuntoFirmadoId?: string;
 }
 
 function stateFromDb(estado: string): "signed" | "pending" | "rejected" {
@@ -32,7 +34,7 @@ function stateFromDb(estado: string): "signed" | "pending" | "rejected" {
   return "pending";
 }
 
-export function SignaturesTab({ community, communityId, validationErrors = [] }: SignaturesTabProps) {
+export function SignaturesTab({ community, communityId, conjuntoId, validationErrors = [] }: SignaturesTabProps) {
   const hasErrors = validationErrors.length > 0;
   const participants = community?.participants.filter(p => p.status !== "exited") || [];
 
@@ -45,6 +47,7 @@ export function SignaturesTab({ community, communityId, validationErrors = [] }:
       cups: p.cups,
       state: p.signatureState,
       signedAt: p.signatureState === "signed" ? new Date().toISOString().slice(0, 10) : undefined,
+      conjuntoFirmadoId: p.conjuntoFirmadoId,
     }))
   );
 
@@ -102,8 +105,15 @@ export function SignaturesTab({ community, communityId, validationErrors = [] }:
     };
   }, [communityId, community?.id]);
 
-  const signed = signers.filter(s => s.state === "signed").length;
-  const pending = signers.filter(s => s.state === "pending").length;
+  // Una firma solo es válida si fue sobre el conjunto de coeficientes actual
+  const isValidSignature = (s: Signer) =>
+    s.state === "signed" && (!conjuntoId || s.conjuntoFirmadoId === conjuntoId);
+  const isStaleSignature = (s: Signer) =>
+    s.state === "signed" && conjuntoId && s.conjuntoFirmadoId !== conjuntoId;
+
+  const signed = signers.filter(isValidSignature).length;
+  const stale = signers.filter(isStaleSignature).length;
+  const pending = signers.filter(s => s.state === "pending").length + stale;
   const rejected = signers.filter(s => s.state === "rejected").length;
   const total = signers.length;
   const progress = total > 0 ? (signed / total) * 100 : 0;
@@ -188,6 +198,20 @@ export function SignaturesTab({ community, communityId, validationErrors = [] }:
               <ul className="mt-1 space-y-0.5">
                 {validationErrors.map((e, i) => <li key={i}>• {e.message}</li>)}
               </ul>
+            </div>
+          </div>
+        )}
+
+        {stale > 0 && (
+          <div className="flex items-start gap-2 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-xs mb-4">
+            <Clock className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-amber-800">
+                {stale} firma{stale !== 1 ? "s" : ""} obsoleta{stale !== 1 ? "s" : ""}
+              </p>
+              <p className="text-amber-700 mt-0.5">
+                Los coeficientes de reparto cambiaron desde que se firmaron. Solicita una nueva ronda de firmas.
+              </p>
             </div>
           </div>
         )}
@@ -324,10 +348,15 @@ export function SignaturesTab({ community, communityId, validationErrors = [] }:
                   )}
                 </div>
               </div>
-              {s.state === "signed" ? (
+              {s.state === "signed" && isValidSignature(s) ? (
                 <div className="flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/15 px-2.5 py-1 rounded-full">
                   <CheckCircle2 className="w-3 h-3" />
                   Firmado · {s.signedAt ? new Date(s.signedAt).toLocaleDateString("es-ES") : ""}
+                </div>
+              ) : s.state === "signed" && isStaleSignature(s) ? (
+                <div className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">
+                  <Clock className="w-3 h-3" />
+                  Firma obsoleta — coeficientes cambiaron
                 </div>
               ) : s.state === "rejected" ? (
                 <div className="flex items-center gap-2">

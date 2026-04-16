@@ -132,6 +132,7 @@ export async function GET(
       beta: betaMap[p.id] ?? 0,
       status: mapEstadoParticipante(p.estadoParticipante),
       signatureState: mapEstadoFirma(p.estadoFirma),
+      conjuntoFirmadoId: p.conjuntoFirmadoId ?? undefined,
       entryDate: p.fechaAlta.toISOString().slice(0, 10),
       exitDate: p.fechaBaja?.toISOString().slice(0, 10),
     })),
