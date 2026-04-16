@@ -55,10 +55,23 @@ export async function POST(
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ message: "Cuerpo inválido" }, { status: 400 });
 
-  const parsed = esquema.safeParse(body);
+  const esquemaPeticion = z.object({
+    modo: z.enum(["CONSTANTE", "VARIABLE"]),
+    entradas: z.array(z.any()),
+    invalidarFirmas: z.boolean().optional(),
+  });
+
+  const peticion = esquemaPeticion.safeParse(body);
+  if (!peticion.success) {
+    return NextResponse.json({ message: "Datos inválidos" }, { status: 400 });
+  }
+
+  const parsed = esquema.safeParse({ modo: peticion.data.modo, entradas: peticion.data.entradas });
   if (!parsed.success) {
     return NextResponse.json({ message: "Datos inválidos" }, { status: 400 });
   }
+
+  const { invalidarFirmas } = peticion.data;
 
   try {
     const conjunto = await prisma.$transaction(async (tx) => {
@@ -66,6 +79,14 @@ export async function POST(
         data: { instalacionId, creadoPorId: userId, modo: parsed.data.modo, estado: "BORRADOR" },
       });
       await crearEntradas(tx, conj.id, parsed.data);
+
+      if (invalidarFirmas) {
+        await tx.participante.updateMany({
+          where: { instalacionId, estadoFirma: "FIRMADO" },
+          data: { estadoFirma: "PENDIENTE", firmadoEn: null },
+        });
+      }
+
       return conj;
     });
 

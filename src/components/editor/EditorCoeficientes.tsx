@@ -285,7 +285,7 @@ export function EditorCoeficientes({
                     size="sm"
                     variant="default"
                     onClick={handleGuardarAplicar}
-                    disabled={estadoGuardado === "guardando" || !tieneCambiosSinGuardar}
+                    disabled={estadoGuardado === "guardando"}
                     className="border border-amber-400 bg-amber-500 text-white hover:bg-amber-600"
                   >
                     <AlertTriangle className="mr-2 h-3.5 w-3.5" />
