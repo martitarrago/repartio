@@ -113,6 +113,7 @@ export interface EditorCoeficientesProps {
   entradasVariablesIniciales?: EntradaVariable[];
   modoInicial?: ModoCoeficiente;
   soloLectura?: boolean;
+  firmadosCount?: number;
   onGuardado?: (conjuntoId: string) => void;
 }
 

@@ -43,6 +43,7 @@ async function getInstalacion(
   modoInicial: ModoCoeficiente;
   entradasConstantesIniciales: EntradaConstante[];
   entradasVariablesIniciales: EntradaVariable[];
+  firmadosCount: number;
 } | null> {
   const inst = await prisma.instalacion.findFirst({
     where: { id, organizacionId },
@@ -61,6 +62,10 @@ async function getInstalacion(
   const participantesRaw = await prisma.participante.findMany({
     where: { instalacionId: id, activo: true },
     orderBy: { orden: "asc" },
+  });
+
+  const firmadosCount = await prisma.participante.count({
+    where: { instalacionId: id, activo: true, estadoFirma: "FIRMADO" },
   });
 
   const historialRaw = await prisma.historialFichero.findMany({
@@ -166,6 +171,7 @@ async function getInstalacion(
     modoInicial,
     entradasConstantesIniciales,
     entradasVariablesIniciales,
+    firmadosCount,
   };
 }
 
@@ -212,6 +218,7 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
     modoInicial,
     entradasConstantesIniciales,
     entradasVariablesIniciales,
+    firmadosCount,
   } = datos;
   const estadoBadge = ESTADO_BADGE[instalacion.estado];
   const tabActiva = tab ?? "detalles";
@@ -301,6 +308,7 @@ export default async function InstalacionPage({ params, searchParams }: Props) {
               modoInicial={modoInicial}
               entradasConstantesIniciales={entradasConstantesIniciales}
               entradasVariablesIniciales={entradasVariablesIniciales}
+              firmadosCount={firmadosCount}
             />
           </div>
         </TabsContent>
@@ -343,6 +351,7 @@ function CoeficientesTabPlaceholder({
   modoInicial,
   entradasConstantesIniciales,
   entradasVariablesIniciales,
+  firmadosCount,
 }: {
   instalacionId: string;
   cau: string;
@@ -352,6 +361,7 @@ function CoeficientesTabPlaceholder({
   modoInicial: ModoCoeficiente;
   entradasConstantesIniciales: EntradaConstante[];
   entradasVariablesIniciales: EntradaVariable[];
+  firmadosCount: number;
 }) {
   if (participantes.length === 0) {
     return (
@@ -385,6 +395,7 @@ function CoeficientesTabPlaceholder({
         modoInicial={modoInicial}
         entradasConstantesIniciales={entradasConstantesIniciales}
         entradasVariablesIniciales={entradasVariablesIniciales}
+        firmadosCount={firmadosCount}
       />
     </div>
   );

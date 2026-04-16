@@ -13,6 +13,7 @@ interface GuardarParams {
   modo: ModoCoeficiente;
   entradasConstantes?: EntradaConstante[];
   entradasVariables?: EntradaVariable[];
+  invalidarFirmas?: boolean;
 }
 
 interface UseEditorCoeficientesResult {
@@ -35,7 +36,7 @@ export function useEditorCoeficientes(): UseEditorCoeficientesResult {
     setError(null);
     setExito(false);
 
-    const { instalacionId, conjuntoId, modo, entradasConstantes, entradasVariables } =
+    const { instalacionId, conjuntoId, modo, entradasConstantes, entradasVariables, invalidarFirmas } =
       params;
 
     const url = conjuntoId
@@ -51,6 +52,7 @@ export function useEditorCoeficientes(): UseEditorCoeficientesResult {
         body: JSON.stringify({
           modo,
           entradas: modo === "CONSTANTE" ? entradasConstantes : entradasVariables,
+          ...(invalidarFirmas ? { invalidarFirmas: true } : {}),
         }),
       });
 

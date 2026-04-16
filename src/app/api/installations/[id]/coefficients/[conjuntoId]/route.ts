@@ -29,6 +29,12 @@ const esquemaVariable = z.object({
 
 const esquema = esquemaConstante.or(esquemaVariable);
 
+const esquemaPeticion = z.object({
+  modo: z.enum(["CONSTANTE", "VARIABLE"]),
+  entradas: z.array(z.any()),
+  invalidarFirmas: z.boolean().optional(),
+});
+
 // ─── PUT — actualizar conjunto existente ─────────────────────────────────────
 
 export async function PUT(
@@ -52,10 +58,17 @@ export async function PUT(
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ message: "Cuerpo inválido" }, { status: 400 });
 
-  const parsed = esquema.safeParse(body);
+  const peticion = esquemaPeticion.safeParse(body);
+  if (!peticion.success) {
+    return NextResponse.json({ message: "Datos inválidos" }, { status: 400 });
+  }
+
+  const parsed = esquema.safeParse({ modo: peticion.data.modo, entradas: peticion.data.entradas });
   if (!parsed.success) {
     return NextResponse.json({ message: "Datos inválidos" }, { status: 400 });
   }
+
+  const { invalidarFirmas } = peticion.data;
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -65,6 +78,13 @@ export async function PUT(
         data: { modo: parsed.data.modo },
       });
       await crearEntradas(tx, conjuntoId, parsed.data);
+
+      if (invalidarFirmas) {
+        await tx.participante.updateMany({
+          where: { instalacion: { id: instalacionId }, estadoFirma: "FIRMADO" },
+          data: { estadoFirma: "PENDIENTE", firmadoEn: null },
+        });
+      }
     });
 
     return NextResponse.json({ id: conjuntoId });

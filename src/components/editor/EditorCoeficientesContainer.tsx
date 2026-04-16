@@ -23,6 +23,7 @@ interface EditorCoeficientesContainerProps {
   modoInicial?: ModoCoeficiente;
   entradasConstantesIniciales?: EntradaConstante[];
   entradasVariablesIniciales?: EntradaVariable[];
+  firmadosCount?: number;
 }
 
 /**
@@ -38,6 +39,7 @@ export function EditorCoeficientesContainer({
   modoInicial = "CONSTANTE",
   entradasConstantesIniciales,
   entradasVariablesIniciales,
+  firmadosCount = 0,
 }: EditorCoeficientesContainerProps) {
   if (participantes.length === 0) {
     return (
@@ -74,6 +76,7 @@ export function EditorCoeficientesContainer({
           : inicializarEntradasVariables(participantes)
       }
       modoInicial={modoInicial}
+      firmadosCount={firmadosCount}
     />
     </FadeIn>
   );
