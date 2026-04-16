@@ -3,6 +3,36 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+// ─── GET — datos ligeros para el editor (firmadosCount) ─────────────────────
+
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ message: "No autorizado" }, { status: 401 });
+  }
+  const organizacionId = (session.user as any).organizacionId as string;
+  const { id } = await params;
+
+  const inst = await prisma.instalacion.findFirst({
+    where: { id, organizacionId },
+    select: { id: true },
+  });
+  if (!inst) {
+    return NextResponse.json({ message: "No encontrada" }, { status: 404 });
+  }
+
+  const firmadosCount = await prisma.participante.count({
+    where: { instalacionId: id, activo: true, estadoFirma: "FIRMADO" },
+  });
+
+  return NextResponse.json({ firmadosCount });
+}
+
+// ─── PUT — actualizar instalación ───────────────────────────────────────────
+
 const esquema = z.object({
   nombre: z.string().min(3).max(100),
   descripcion: z.string().max(500).optional(),

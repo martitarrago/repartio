@@ -78,8 +78,19 @@ export function EditorCoeficientes({
   const [modoSolicitado, setModoSolicitado] = useState<ModoCoeficiente | null>(null);
   const [estadoGuardado, setEstadoGuardado] = useState<"idle" | "guardando" | "guardado">("idle");
   const [confirmarInvalidar, setConfirmarInvalidar] = useState(false);
+  const [firmadosLive, setFirmadosLive] = useState(firmadosCount);
 
-  const hayFirmas = firmadosCount > 0;
+  // Consultar firmadosCount real al montar (el SSR puede estar desactualizado)
+  useEffect(() => {
+    fetch(`/api/installations/${instalacionId}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => {
+        if (d && typeof d.firmadosCount === "number") setFirmadosLive(d.firmadosCount);
+      })
+      .catch(() => {});
+  }, [instalacionId]);
+
+  const hayFirmas = firmadosLive > 0;
 
   const { guardar, error: errorGuardado } = useEditorCoeficientes();
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -194,7 +205,7 @@ export function EditorCoeficientes({
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
           <div className="text-sm">
             <p className="font-medium text-amber-800">
-              Documento firmado por {firmadosCount} participante{firmadosCount !== 1 ? "s" : ""}
+              Documento firmado por {firmadosLive} participante{firmadosLive !== 1 ? "s" : ""}
             </p>
             <p className="mt-0.5 text-amber-700">
               Modificar los coeficientes invalidará el acuerdo de reparto firmado. Usa{" "}
@@ -394,8 +405,8 @@ export function EditorCoeficientes({
             <AlertDialogDescription asChild>
               <div className="space-y-2 text-sm">
                 <p>
-                  <strong>{firmadosCount} participante{firmadosCount !== 1 ? "s" : ""}</strong>{" "}
-                  {firmadosCount !== 1 ? "han" : "ha"} firmado el documento de reparto
+                  <strong>{firmadosLive} participante{firmadosLive !== 1 ? "s" : ""}</strong>{" "}
+                  {firmadosLive !== 1 ? "han" : "ha"} firmado el documento de reparto
                   actual. Si guardas estos nuevos coeficientes:
                 </p>
                 <ul className="ml-4 list-disc space-y-1 text-muted-foreground">
