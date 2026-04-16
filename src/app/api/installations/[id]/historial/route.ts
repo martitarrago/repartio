@@ -20,6 +20,7 @@ export async function GET(
     take: 20,
     select: {
       id: true,
+      conjuntoId: true,
       nombreFichero: true,
       generadoEn: true,
       totalLineas: true,

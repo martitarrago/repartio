@@ -118,6 +118,15 @@ export async function GET(
 
   const coefMode = i.conjuntos[0]?.modo === "VARIABLE" ? "variable" : "fixed";
 
+  // Check if there's a valid TXT generated for the current conjunto
+  let txtVigente = false;
+  if (activeConjuntoId) {
+    const txtCount = await prisma.historialFichero.count({
+      where: { conjuntoId: activeConjuntoId, verificacionSuma: true },
+    });
+    txtVigente = txtCount > 0;
+  }
+
   const community = {
     id: i.id,
     conjuntoId: i.conjuntos[0]?.id ?? null,
@@ -140,6 +149,7 @@ export async function GET(
     gestorNif: i.gestorNif ?? undefined,
     phase: mapFase(i.fase),
     createdAt: i.creadaEn.toISOString(),
+    txtVigente,
     documents: buildDocuments(i.documentos),
     participants: i.participantes.map((p) => ({
       id: p.id,

@@ -96,6 +96,7 @@ export interface Community {
   gestorNif?: string;
   phase: ProjectPhase;
   createdAt: string;
+  txtVigente?: boolean;
   documents: {
     acuerdo: boolean;
     txt: boolean;

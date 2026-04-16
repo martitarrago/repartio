@@ -13,6 +13,7 @@ interface DocumentosTabProps {
   community: Community;
   communityId: string;
   conjuntoId?: string;
+  onTxtGenerated?: () => void;
 }
 
 interface GenerateResult {
@@ -23,6 +24,7 @@ interface GenerateResult {
 
 interface HistorialEntry {
   id: string;
+  conjuntoId: string;
   nombreFichero: string;
   generadoEn: string;
   totalLineas: number;
@@ -67,7 +69,7 @@ function downloadTXT(contenido: string, nombreFichero: string) {
   URL.revokeObjectURL(url);
 }
 
-export function DocumentosTab({ community, communityId, conjuntoId }: DocumentosTabProps) {
+export function DocumentosTab({ community, communityId, conjuntoId, onTxtGenerated }: DocumentosTabProps) {
   // ── TXT state ────────────────────────────────────────────────────────
   const [generating, setGenerating] = useState(false);
   const [txtResult, setTxtResult] = useState<GenerateResult | null>(null);
@@ -97,6 +99,14 @@ export function DocumentosTab({ community, communityId, conjuntoId }: Documentos
   const allSigned = activeParticipants.length > 0 && activeParticipants.every(p => p.signatureState === "signed");
   const pendingSigs = activeParticipants.filter(p => p.signatureState === "pending").length;
 
+  // Documento vigente: latest TXT generated for current conjuntoId
+  const txtVigenteEntry = conjuntoId
+    ? historial.find(h => h.conjuntoId === conjuntoId && h.verificacionSuma)
+    : null;
+  const hasTxtOutdated = !txtVigenteEntry && historial.length > 0;
+  const txtStatus: "vigente" | "desactualizado" | "sin_generar" =
+    txtVigenteEntry ? "vigente" : hasTxtOutdated ? "desactualizado" : "sin_generar";
+
   // ── Load data ────────────────────────────────────────────────────────
   const loadHistory = useCallback(async () => {
     setLoadingHistory(true);
@@ -125,6 +135,7 @@ export function DocumentosTab({ community, communityId, conjuntoId }: Documentos
       if (!res.ok) { setTxtError(data.message ?? "Error al generar el fichero"); return; }
       setTxtResult(data); setShowTxtPreview(true);
       loadHistory();
+      onTxtGenerated?.();
     } catch { setTxtError("Error de conexión"); }
     finally { setGenerating(false); }
   };
@@ -163,6 +174,67 @@ export function DocumentosTab({ community, communityId, conjuntoId }: Documentos
 
   return (
     <div className="space-y-8 animate-fade-in">
+
+      {/* ══ Documento vigente ═════════════════════════════════════════════ */}
+      <div className={`glass-card rounded-2xl p-5 border ${
+        txtStatus === "vigente"
+          ? "border-primary/30 bg-primary/5"
+          : txtStatus === "desactualizado"
+          ? "border-amber-200 bg-amber-50"
+          : "border-border"
+      }`}>
+        <div className="flex items-start gap-4">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+            txtStatus === "vigente" ? "bg-primary/15" : txtStatus === "desactualizado" ? "bg-amber-100" : "bg-muted"
+          }`}>
+            {txtStatus === "vigente"
+              ? <CheckCircle2 className="w-5 h-5 text-primary" />
+              : txtStatus === "desactualizado"
+              ? <AlertTriangle className="w-5 h-5 text-amber-600" />
+              : <FileText className="w-5 h-5 text-muted-foreground" />
+            }
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-foreground">Documento vigente</p>
+              {txtStatus === "vigente" && (
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/15 text-primary">Vigente</span>
+              )}
+              {txtStatus === "desactualizado" && (
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Desactualizado</span>
+              )}
+              {txtStatus === "sin_generar" && (
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Sin generar</span>
+              )}
+            </div>
+            {txtStatus === "vigente" && txtVigenteEntry && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                <span className="font-mono">{txtVigenteEntry.nombreFichero}</span> · {txtVigenteEntry.totalParticipantes} participantes · {txtVigenteEntry.totalLineas} líneas · generado el{" "}
+                {new Date(txtVigenteEntry.generadoEn).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+              </p>
+            )}
+            {txtStatus === "desactualizado" && (
+              <p className="text-xs text-amber-700 mt-0.5">
+                Los coeficientes de reparto cambiaron desde la última generación. Genera un nuevo fichero TXT para tener el documento al día.
+              </p>
+            )}
+            {txtStatus === "sin_generar" && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Aún no se ha generado ningún fichero TXT. Configura los coeficientes y genera el documento.
+              </p>
+            )}
+          </div>
+          {txtStatus === "vigente" && txtVigenteEntry && txtResult?.nombreFichero === txtVigenteEntry.nombreFichero && (
+            <button
+              onClick={() => txtResult && downloadTXT(txtResult.contenido, txtResult.nombreFichero)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors flex-shrink-0"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Descargar
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* ══ ZONA 1: Generación de documentos ══════════════════════════════ */}
       <div className="space-y-3">

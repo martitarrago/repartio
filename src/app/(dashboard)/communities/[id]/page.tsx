@@ -40,6 +40,7 @@ export default function CommunityDetailPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [conjuntoId, setConjuntoId] = useState<string | undefined>(undefined);
+  const [txtVigente, setTxtVigente] = useState(false);
 
   // Community state
   const [baseCommunity, setBaseCommunity] = useState<Community | null>(null);
@@ -72,6 +73,7 @@ export default function CommunityDetailPage() {
         const savedTotal = activeParts.reduce((s: number, p: Participant) => s + p.beta, 0);
         setSavedBetaValid(Math.abs(savedTotal - 1) < 0.001);
         setConjuntoId(c.conjuntoId ?? undefined);
+        setTxtVigente(c.txtVigente ?? false);
         setCoefMode(c.coeficientMode);
         setGestorEnabled(c.gestorEnabled);
         setGestorName(c.gestorName || "");
@@ -165,14 +167,14 @@ export default function CommunityDetailPage() {
     const validParticipants = activeParticipants.filter(p => validateCUPS(p.cups).valid);
     const participantes: StepStatus = validParticipants.length > 0 ? "complete" : (activeParticipants.length > 0 ? "error" : "pending");
     const coeficientes: StepStatus = activeParticipants.length === 0 ? "pending" : (savedBetaValid ? "complete" : "error");
-    const documento: StepStatus = community.documents?.txt ? "complete" : "pending";
+    const documento: StepStatus = txtVigente ? "complete" : "pending";
     const allSigned = activeParticipants.length > 0 && activeParticipants.every(
       p => p.signatureState === "signed" && p.conjuntoFirmadoId === conjuntoId
     );
     const anyRejected = activeParticipants.some(p => p.signatureState === "rejected");
     const firmas: StepStatus = anyRejected ? "error" : (allSigned ? "complete" : "pending");
     return { detalles, participantes, coeficientes, documento, firmas };
-  }, [name, cau, community, activeParticipants, savedBetaValid, conjuntoId]);
+  }, [name, cau, community, activeParticipants, savedBetaValid, conjuntoId, txtVigente]);
 
   const allComplete = Object.values(stepStatuses).every(s => s === "complete");
   const isEnviado = baseCommunity?.phase === "enviado";
@@ -463,13 +465,13 @@ export default function CommunityDetailPage() {
               onParticipantsChange={setParticipants}
               communityId={id}
               conjuntoId={conjuntoId}
-              onSaved={(cId) => { setConjuntoId(cId); setSavedBetaValid(betaValid); }}
+              onSaved={(cId) => { setConjuntoId(cId); setSavedBetaValid(betaValid); if (cId !== conjuntoId) setTxtVigente(false); }}
             />
           </div>
         )}
 
         {activeStep === "documento" && (
-          <DocumentosTab community={community} communityId={id} conjuntoId={conjuntoId} />
+          <DocumentosTab community={community} communityId={id} conjuntoId={conjuntoId} onTxtGenerated={() => setTxtVigente(true)} />
         )}
 
         {activeStep === "firmas" && (
