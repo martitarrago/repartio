@@ -22,11 +22,22 @@ export async function GET(
     return NextResponse.json({ message: "No encontrada" }, { status: 404 });
   }
 
-  // Todos los conjuntos que tienen al menos un participante que los firmó
+  // Conjunto activo (no archivado)
+  const conjuntoActivo = await prisma.conjuntoCoeficientes.findFirst({
+    where: { instalacionId: id, estado: { not: "ARCHIVADO" } },
+    orderBy: { actualizadoEn: "desc" },
+    select: { id: true },
+  });
+
+  // Todos los conjuntos que tienen al menos un participante que los firmó,
+  // OR el conjunto activo (para mostrarlo aunque aún no tenga firmas vinculadas)
   const conjuntos = await prisma.conjuntoCoeficientes.findMany({
     where: {
       instalacionId: id,
-      firmasParticipantes: { some: {} },
+      OR: [
+        { firmasParticipantes: { some: {} } },
+        ...(conjuntoActivo ? [{ id: conjuntoActivo.id }] : []),
+      ],
     },
     orderBy: { creadoEn: "desc" },
     include: {
@@ -35,6 +46,7 @@ export async function GET(
         include: { participante: { select: { nombre: true, cups: true } } },
       },
       firmasParticipantes: {
+        where: { estadoFirma: "FIRMADO" },
         select: {
           id: true,
           nombre: true,
@@ -42,13 +54,6 @@ export async function GET(
         },
       },
     },
-  });
-
-  // También incluir el conjunto activo aunque no tenga firmas aún
-  const conjuntoActivo = await prisma.conjuntoCoeficientes.findFirst({
-    where: { instalacionId: id, estado: { not: "ARCHIVADO" } },
-    orderBy: { actualizadoEn: "desc" },
-    select: { id: true },
   });
 
   const history = conjuntos.map((c) => ({

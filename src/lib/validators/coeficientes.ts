@@ -80,10 +80,15 @@ export function formatearBeta(valor: number): string {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function calcularSuma(valores: string[]): number {
-  return valores.reduce((acc, v) => {
+  // Sum in integer millionths to avoid IEEE 754 float accumulation errors
+  let sumMillionths = 0;
+  for (const v of valores) {
     const n = parsearValor(v);
-    return acc + (n ?? 0);
-  }, 0);
+    if (n !== null) {
+      sumMillionths += Math.round(n * 1_000_000);
+    }
+  }
+  return sumMillionths / 1_000_000;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

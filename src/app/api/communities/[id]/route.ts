@@ -83,9 +83,27 @@ export async function GET(
 
   // Construir betaMap desde el conjunto activo
   const betaMap: Record<string, number> = {};
+  const activeConjuntoId = i.conjuntos[0]?.id ?? null;
   if (i.conjuntos[0]) {
     for (const e of i.conjuntos[0].entradas) {
       betaMap[e.participanteId] = Number(e.valor);
+    }
+  }
+
+  // Lazy backfill: participantes FIRMADO con conjuntoFirmadoId=null → asignar conjunto activo
+  if (activeConjuntoId) {
+    const needsBackfill = i.participantes.filter(
+      p => p.estadoFirma === "FIRMADO" && !p.conjuntoFirmadoId
+    );
+    if (needsBackfill.length > 0) {
+      await prisma.participante.updateMany({
+        where: { id: { in: needsBackfill.map(p => p.id) } },
+        data: { conjuntoFirmadoId: activeConjuntoId },
+      });
+      // Update in-memory so the response is correct
+      for (const p of needsBackfill) {
+        p.conjuntoFirmadoId = activeConjuntoId;
+      }
     }
   }
 

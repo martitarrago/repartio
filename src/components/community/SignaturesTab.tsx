@@ -131,6 +131,7 @@ export function SignaturesTab({ community, communityId, conjuntoId, validationEr
             id: string;
             estadoFirma: string;
             firmadoEn?: string;
+            conjuntoFirmadoId?: string | null;
           };
           setSigners(prev =>
             prev.map(s =>
@@ -141,6 +142,7 @@ export function SignaturesTab({ community, communityId, conjuntoId, validationEr
                     signedAt: updated.firmadoEn
                       ? new Date(updated.firmadoEn).toISOString().slice(0, 10)
                       : s.signedAt,
+                    conjuntoFirmadoId: updated.conjuntoFirmadoId ?? s.conjuntoFirmadoId,
                   }
                 : s
             )

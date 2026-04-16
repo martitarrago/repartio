@@ -66,11 +66,17 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
     let betas: number[] = [];
 
     switch (method) {
-      case "equal": betas = active.map(() => 1 / active.length); break;
+      case "equal": {
+        // Integer arithmetic to guarantee sum = exactly 1.000000
+        const n = active.length;
+        const base = Math.floor(1_000_000 / n);
+        const remainder = 1_000_000 - base * n;
+        betas = active.map((_, i) =>
+          (i < n - remainder ? base : base + 1) / 1_000_000
+        );
+        break;
+      }
     }
-
-    const sum = betas.reduce((s, b) => s + b, 0);
-    betas = betas.map(b => b / sum);
 
     const updated = participants.map(p => {
       const idx = active.findIndex(a => a.id === p.id);
@@ -82,8 +88,13 @@ export function BetaCoefficients({ participants, mode, onModeChange, onParticipa
   };
 
   const resetBetas = () => {
-    const eq = 1 / participants.length;
-    onParticipantsChange(participants.map(p => ({ ...p, beta: eq })));
+    const n = participants.length;
+    const base = Math.floor(1_000_000 / n);
+    const remainder = 1_000_000 - base * n;
+    onParticipantsChange(participants.map((p, i) => ({
+      ...p,
+      beta: (i < n - remainder ? base : base + 1) / 1_000_000,
+    })));
   };
 
   const doSave = useCallback(async (forceNewConjunto = false) => {

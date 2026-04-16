@@ -19,6 +19,13 @@ export function formatearBeta(valor: number): string {
   return valor.toFixed(6).replace(".", ",");
 }
 
+/** Formatea β desde millonésimas (entero) → "0,333333" sin pasar por float */
+function formatearBetaDesdeMillonesimas(millionths: number): string {
+  const intPart = Math.floor(millionths / 1_000_000);
+  const decPart = millionths % 1_000_000;
+  return `${intPart},${Math.abs(decPart).toString().padStart(6, "0")}`;
+}
+
 /**
  * Formatea hora absoluta del año como 4 dígitos, 1-indexed (0001–8760).
  * horaAbs es 0-indexed (0–8759) → salida "0001"–"8760"
@@ -133,8 +140,8 @@ export function generarContenidoConstante(
   entradas: EntradaConstante[]
 ): ResultadoGeneracion {
   try {
-    const lineas: string[] = [];
-
+    // Convert to integer millionths for exact arithmetic
+    const items: { cups: string; millionths: number }[] = [];
     for (const entrada of entradas) {
       const n = parsearValor(entrada.valor);
       if (n === null) {
@@ -143,8 +150,18 @@ export function generarContenidoConstante(
           error: `Valor inválido para ${entrada.cups}: "${entrada.valor}"`,
         };
       }
-      lineas.push(`${entrada.cups};${formatearBeta(n)}`);
+      items.push({ cups: entrada.cups, millionths: Math.round(n * 1_000_000) });
     }
+
+    // Closure correction: adjust last participant so sum = exactly 1,000,000
+    const sum = items.reduce((s, it) => s + it.millionths, 0);
+    if (sum !== 1_000_000 && items.length > 0) {
+      items[items.length - 1].millionths += 1_000_000 - sum;
+    }
+
+    const lineas = items.map(it =>
+      `${it.cups};${formatearBetaDesdeMillonesimas(it.millionths)}`
+    );
 
     const contenido = lineas.join("\n") + "\n";
     const encoder = new TextEncoder();
@@ -172,15 +189,16 @@ export function generarContenidoVariable(
 ): ResultadoGeneracion {
   try {
     const calendar = construirCalendario(anio);
-    // Pre-allocate array for performance
     const lineas: string[] = new Array(8760 * entradas.length);
     let idx = 0;
 
     for (let horaAbs = 0; horaAbs < 8760; horaAbs++) {
       const tipoDia = calendar[horaAbs];
-      // Hora dentro del día (0-23) → usada para indexar la matriz
       const horaDia = horaAbs % 24;
+      const horaStr = formatearHora(horaAbs);
 
+      // Convert all participants for this hour to integer millionths
+      const items: { cups: string; millionths: number }[] = [];
       for (const entrada of entradas) {
         const raw = entrada.matriz[tipoDia][horaDia];
         const n = parsearValor(raw);
@@ -190,7 +208,17 @@ export function generarContenidoVariable(
             error: `Valor inválido para ${entrada.cups} — ${tipoDia} hora ${horaDia}: "${raw}"`,
           };
         }
-        lineas[idx++] = `${entrada.cups};${formatearHora(horaAbs)};${formatearBeta(n)}`;
+        items.push({ cups: entrada.cups, millionths: Math.round(n * 1_000_000) });
+      }
+
+      // Closure correction per hour: adjust last participant so sum = 1,000,000
+      const sum = items.reduce((s, it) => s + it.millionths, 0);
+      if (sum !== 1_000_000 && items.length > 0) {
+        items[items.length - 1].millionths += 1_000_000 - sum;
+      }
+
+      for (const it of items) {
+        lineas[idx++] = `${it.cups};${horaStr};${formatearBetaDesdeMillonesimas(it.millionths)}`;
       }
     }
 
