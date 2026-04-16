@@ -473,7 +473,13 @@ export default function CommunityDetailPage() {
         )}
 
         {activeStep === "firmas" && (
-          <SignaturesTab community={community} communityId={id} conjuntoId={conjuntoId} validationErrors={errors} />
+          <SignaturesTab
+            community={community}
+            communityId={id}
+            conjuntoId={conjuntoId}
+            validationErrors={errors}
+            onConjuntoRestored={(restoredId) => setConjuntoId(restoredId)}
+          />
         )}
       </div>
     </div>

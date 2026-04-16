@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Send, CheckCircle2, Clock, PenLine, XCircle, Mail, MailX, Loader2, Wifi, Copy, Link, Check } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Send, CheckCircle2, Clock, PenLine, XCircle, Mail, MailX, Loader2, Wifi, Copy, Link, Check, History, RotateCcw, ChevronDown, ChevronUp, Users } from "lucide-react";
 import { type Community } from "@/lib/types/community";
 import { supabase } from "@/lib/supabase";
 
@@ -15,6 +15,18 @@ interface SignaturesTabProps {
   communityId?: string;
   conjuntoId?: string;
   validationErrors?: ValidationIssue[];
+  onConjuntoRestored?: (conjuntoId: string) => void;
+}
+
+interface HistoryEntry {
+  id: string;
+  estado: string;
+  modo: string;
+  version: number;
+  creadoEn: string;
+  isActive: boolean;
+  coeficientes: { nombre: string; cups: string; valor: number }[];
+  firmas: { id: string; nombre: string; firmadoEn: string | null }[];
 }
 
 interface Signer {
@@ -34,7 +46,7 @@ function stateFromDb(estado: string): "signed" | "pending" | "rejected" {
   return "pending";
 }
 
-export function SignaturesTab({ community, communityId, conjuntoId, validationErrors = [] }: SignaturesTabProps) {
+export function SignaturesTab({ community, communityId, conjuntoId, validationErrors = [], onConjuntoRestored }: SignaturesTabProps) {
   const hasErrors = validationErrors.length > 0;
   const participants = community?.participants.filter(p => p.status !== "exited") || [];
 
@@ -57,6 +69,47 @@ export function SignaturesTab({ community, communityId, conjuntoId, validationEr
   const [signatureLinks, setSignatureLinks] = useState<{ nombre: string; email: string | null; link: string; emailSent: boolean }[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  // Historial de firmas
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [restoringId, setRestoringId] = useState<string | null>(null);
+  const [expandedEntry, setExpandedEntry] = useState<string | null>(null);
+
+  const instalId = communityId ?? community?.id;
+
+  const fetchHistory = useCallback(async () => {
+    if (!instalId) return;
+    setLoadingHistory(true);
+    try {
+      const res = await fetch(`/api/communities/${instalId}/firma-history`);
+      if (res.ok) {
+        const data = await res.json();
+        setHistory(data.history);
+      }
+    } catch {} finally {
+      setLoadingHistory(false);
+    }
+  }, [instalId]);
+
+  const handleRestore = async (entryId: string) => {
+    if (!instalId) return;
+    setRestoringId(entryId);
+    try {
+      const res = await fetch(`/api/communities/${instalId}/firma-history`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conjuntoId: entryId }),
+      });
+      if (res.ok) {
+        onConjuntoRestored?.(entryId);
+        await fetchHistory();
+      }
+    } catch {} finally {
+      setRestoringId(null);
+    }
+  };
 
   // Supabase Realtime — suscribirse a cambios en la tabla Participante
   useEffect(() => {
@@ -316,6 +369,149 @@ export function SignaturesTab({ community, communityId, conjuntoId, validationEr
           </div>
         </div>
       )}
+
+      {/* Historial de documentos firmados */}
+      <div className="glass-card rounded-2xl overflow-hidden">
+        <button
+          onClick={() => { setHistoryOpen(v => !v); if (!historyOpen && history.length === 0) fetchHistory(); }}
+          className="w-full flex items-center justify-between px-6 py-4 hover:bg-muted/30 transition-colors"
+        >
+          <div className="flex items-center gap-2.5">
+            <History className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-semibold text-foreground">Historial de acuerdos firmados</span>
+          </div>
+          {historyOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+        </button>
+
+        {historyOpen && (
+          <div className="px-6 pb-5 space-y-3 animate-fade-in">
+            {loadingHistory ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : history.length === 0 ? (
+              <p className="text-xs text-muted-foreground py-4 text-center">
+                No hay acuerdos firmados en el historial.
+              </p>
+            ) : (
+              history.map((entry) => (
+                <div
+                  key={entry.id}
+                  className={`rounded-xl border p-4 space-y-3 transition-colors ${
+                    entry.isActive
+                      ? "border-primary/30 bg-primary/5"
+                      : "border-border bg-card"
+                  }`}
+                >
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
+                        {entry.isActive ? (
+                          <span className="text-[10px] font-semibold text-primary bg-primary/15 px-2 py-0.5 rounded-full">
+                            Activo
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                            Archivado
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(entry.creadoEn).toLocaleDateString("es-ES", {
+                          day: "numeric", month: "short", year: "numeric",
+                        })}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground/60">
+                        v{entry.version}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setExpandedEntry(expandedEntry === entry.id ? null : entry.id)}
+                        className="text-[10px] text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-lg hover:bg-muted"
+                      >
+                        {expandedEntry === entry.id ? "Ocultar" : "Ver detalle"}
+                      </button>
+                      {!entry.isActive && (
+                        <button
+                          onClick={() => handleRestore(entry.id)}
+                          disabled={restoringId === entry.id}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[10px] font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+                        >
+                          {restoringId === entry.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <RotateCcw className="w-3 h-3" />
+                          )}
+                          Restaurar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Firmas summary */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Users className="w-3 h-3" />
+                      {entry.firmas.length} firma{entry.firmas.length !== 1 ? "s" : ""}
+                    </div>
+                    <div className="flex -space-x-1.5">
+                      {entry.firmas.slice(0, 5).map((f) => (
+                        <div
+                          key={f.id}
+                          className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[8px] font-bold ring-2 ring-card"
+                          title={`${f.nombre} — ${f.firmadoEn ? new Date(f.firmadoEn).toLocaleDateString("es-ES") : ""}`}
+                        >
+                          {f.nombre.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                        </div>
+                      ))}
+                      {entry.firmas.length > 5 && (
+                        <div className="w-6 h-6 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-[8px] font-bold ring-2 ring-card">
+                          +{entry.firmas.length - 5}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expanded detail: coeficientes + firmas */}
+                  {expandedEntry === entry.id && (
+                    <div className="space-y-3 pt-2 border-t border-border animate-fade-in">
+                      {/* Coeficientes */}
+                      <div>
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Coeficientes</p>
+                        <div className="space-y-1">
+                          {entry.coeficientes.map((c) => (
+                            <div key={c.cups} className="flex items-center justify-between text-xs">
+                              <span className="text-foreground">{c.nombre}</span>
+                              <span className="font-mono text-muted-foreground">{(c.valor * 100).toFixed(2)}%</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      {/* Firmas detalladas */}
+                      <div>
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Firmas</p>
+                        <div className="space-y-1">
+                          {entry.firmas.map((f) => (
+                            <div key={f.id} className="flex items-center justify-between text-xs">
+                              <span className="text-foreground">{f.nombre}</span>
+                              <span className="text-muted-foreground">
+                                {f.firmadoEn ? new Date(f.firmadoEn).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" }) : "—"}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Signers list */}
       <div className="space-y-2">
